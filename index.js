@@ -13,27 +13,39 @@ client.on('message', async mensaje => {
 
     if (mensaje.content.includes('c!')) {
 
-        const comando = mensaje.content.split('c!')[1];
-        const voiceChannel = mensaje.member.voice.channel;
-        const conexion = await voiceChannel.join();
+        let comando = mensaje.content.split('c!')[1];
 
-        leerComando(comando, conexion, mensaje)
+        if(/\s/.test(comando)) {
+            comando = comando.split(' ')[0];
+        }
 
+        if(comando.length > 1) {
+            leerComando(comando, mensaje);
+        }
     }
 });
 
-function leerComando(comando, conexion, mensaje) {
+async function leerComando(comando, mensaje) {
 
-    if (mensaje.member.voice.channel) {
+    if(comando === 'help') {
+        mensaje.reply('Solamente pone c! y el nombre de alguna frase bbto. Ej: buenardo');
+    } else {
 
-        if(fs.existsSync('./audios/' + comando + '.mp3')) {
-            agregarCola(comando, conexion, mensaje);
+        const voiceChannel = mensaje.member.voice.channel;
+
+        if (voiceChannel) {
+            if(fs.existsSync('./audios/' + comando + '.mp3')) {
+
+                const conexion = await voiceChannel.join();
+
+                agregarCola(comando, conexion, mensaje);
+            } else {
+                mensaje.reply('mMm ese comandovich no lo tengo');
+            }
         } else {
-            mensaje.reply('mMm ese comandovich no lo tengo');
+            mensaje.reply('Bbto metete a un chanel para escucharme');
         }
 
-    } else {
-        mensaje.reply('Bbto metete a un chanel para escucharme');
     }
 }
 
