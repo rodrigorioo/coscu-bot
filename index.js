@@ -44,7 +44,7 @@ async function leerComando(comando, args, mensaje) {
         case 'help':
             let msg = "c!<frase>: dice alguna frase de coscu (Ej: c!buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
                 "c!manual: El bot solo va a funcionar por comando\n" +
-                "c!automatico <tiempo_en_ms>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n";
+                "c!automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n";
             mensaje.reply(msg); break;
         case 'automatico': modoAutomatico(true, args, mensaje); break;
         case 'manual': modoAutomatico(false, args, mensaje); break;
