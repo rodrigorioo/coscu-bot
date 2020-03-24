@@ -1,6 +1,7 @@
 require('dotenv').config({path: __dirname + '/.env'});
 const Discord = require('discord.js');
 const fs = require('fs');
+const axios = require('axios');
 
 const client = new Discord.Client();
 
@@ -48,6 +49,7 @@ async function leerComando(comando, args, mensaje) {
             mensaje.reply(msg); break;
         case 'automatico': modoAutomatico(true, args, mensaje); break;
         case 'manual': modoAutomatico(false, args, mensaje); break;
+        case 'escuchar': escucharVoz(mensaje); break;
 
         default:
 
@@ -117,6 +119,68 @@ function reproducirSonido() {
         }
     }
 }
+
+/************************************************************/
+/** WIT.AI **/
+/************************************************************/
+
+function reconocerComando(mensaje) {
+
+    const dataSpeech = {
+
+    };
+
+    const opcionesSpeech = {
+        headers: {
+            "Authorization": "Bearer " + process.env['TOKEN_WIT'],
+            "Content-Type": 'audio/mpeg3',
+        }
+    };
+
+    axios.post('https://api.wit.ai/speech?v=20170307', dataSpeech, opcionesSpeech)
+        .then((res) => {
+            console.log(`statusCode: ${res.statusCode}`)
+            console.log(res)
+        })
+        .catch((error) => {
+            console.error(error)
+        });
+}
+
+function generateOutputFile(channel, member) {
+    // use IDs instead of username cause some people have stupid emojis in their name
+    const fileName = `./grabaciones/${channel.id}-${member.id}-${Date.now()}.pcm`;
+    return fs.createWriteStream(fileName);
+}
+
+async function escucharVoz(mensaje) {
+
+    const voiceChannel = mensaje.member.voice.channel;
+
+    if (voiceChannel) {
+        const conexion = await voiceChannel.join();
+
+        const receiver = conexion.receiver.createStream(mensaje.author, {
+            mode: 'pcm'
+        });
+
+        receiver.pipe(fs.createWriteStream('./grabaciones/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)));
+
+        // conexion.on('speaking', (user, speaking) => {
+        //     if (speaking) {
+        //         receiver.pipe(fs.createWriteStream('./grabaciones/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '.mp3'));
+        //     }
+        // });
+
+    } else {
+        mensaje.reply('Necesito ingresar a un canal para reconocer comandos por voz bb!!');
+    }
+
+}
+
+/************************************************************/
+/** END WIT.AI **/
+/************************************************************/
 
 /************************************************************/
 /** MODO AUTOMÁTICO **/
