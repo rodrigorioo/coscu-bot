@@ -196,8 +196,8 @@ function modoAutomatico(modo, args, mensaje) {
                 // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
                 if (args[0] !== undefined) {
 
-                    if (Number.isInteger(parseInt(args[0]))) {
-                        tiempo = parseInt(args[0]);
+                    if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
+                        tiempo = parseInt(args[0]) * 60;
                     } else {
                         throw Error('El argumento del tiempo tiene que ser un número');
                     }
