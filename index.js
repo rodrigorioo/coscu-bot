@@ -166,7 +166,7 @@ function ejecutarModoAutomatico(mensaje) {
 
             // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
             canalesCache.map( (canal, iCanal) => {
-                if(canal.type === 'voice') {
+                if(canal.type === 'voice' && canal.members > 0) {
                     canales.push(canal);
                 }
             });
