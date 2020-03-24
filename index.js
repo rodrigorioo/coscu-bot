@@ -199,7 +199,7 @@ function modoAutomatico(modo, args, mensaje) {
                     if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
                         tiempo = parseInt(args[0]) * 60;
                     } else {
-                        throw Error('El argumento del tiempo tiene que ser un número');
+                        throw Error('El argumento del tiempo tiene que ser un número válido');
                     }
                 }
 
