@@ -156,8 +156,6 @@ function ejecutarModoAutomatico(mensaje) {
     const canalesCache = mensaje.guild.channels.cache;
     let canales = [];
 
-    console.log(timerModoAutomaticoFuncionando);
-
     if(!timerModoAutomaticoFuncionando) {
 
         timerModoAutomaticoFuncionando = true;
