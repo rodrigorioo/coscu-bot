@@ -5,13 +5,14 @@ const axios = require('axios');
 
 const client = new Discord.Client();
 
-/** CONFIGURACION BOT */
+/** MIS MODULOS */
 
-let sonando = false;
-let colaSonidos = [];
-let automatico = false;
-let timerModoAutomatico = null;
-let timerModoAutomaticoFuncionando = false;
+const sonidos = require('./sonidos');
+const automatico = require('./automatico');
+
+/** END MIS MODULOS */
+
+/** CONFIGURACION BOT */
 
 /** END CONFIGURACION BOT */
 
@@ -47,8 +48,8 @@ async function leerComando(comando, args, mensaje) {
                 "c!manual: El bot solo va a funcionar por comando\n" +
                 "c!automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n";
             mensaje.reply(msg); break;
-        case 'automatico': modoAutomatico(true, args, mensaje); break;
-        case 'manual': modoAutomatico(false, args, mensaje); break;
+        case 'automatico': automatico.modoAutomatico(true, args, mensaje); break;
+        case 'manual': automatico.modoAutomatico(false, args, mensaje); break;
         case 'escuchar': escucharVoz(mensaje); break;
 
         default:
@@ -59,10 +60,10 @@ async function leerComando(comando, args, mensaje) {
                 if(fs.existsSync('./audios/' + comando + '.mp3')) {
 
                     // SI ESTÁ EN MODO MANUAL
-                    if(!automatico) {
+                    if(!automatico.automatico) {
                         const conexion = await voiceChannel.join();
 
-                        agregarCola(comando, conexion, mensaje);
+                        sonidos.agregarCola(comando, conexion, mensaje);
                     } else {
                         mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
                     }
