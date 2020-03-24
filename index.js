@@ -1,16 +1,16 @@
 require('dotenv').config({path: __dirname + '/.env'});
 const Discord = require('discord.js');
 const fs = require('fs');
-
 const client = new Discord.Client();
 
-/** CONFIGURACION BOT */
+/** MIS MODULOS */
 
-let sonando = false;
-let colaSonidos = [];
-let automatico = false;
-let timerModoAutomatico = null;
-let timerModoAutomaticoFuncionando = false;
+const sonidos = require('./sonidos');
+const automatico = require('./automatico');
+
+/** END MIS MODULOS */
+
+/** CONFIGURACION BOT */
 
 /** END CONFIGURACION BOT */
 
@@ -46,8 +46,8 @@ async function leerComando(comando, args, mensaje) {
                 "c!manual: El bot solo va a funcionar por comando\n" +
                 "c!automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n";
             mensaje.reply(msg); break;
-        case 'automatico': modoAutomatico(true, args, mensaje); break;
-        case 'manual': modoAutomatico(false, args, mensaje); break;
+        case 'automatico': automatico.modoAutomatico(true, args, mensaje); break;
+        case 'manual': automatico.modoAutomatico(false, args, mensaje); break;
 
         default:
 
@@ -57,10 +57,10 @@ async function leerComando(comando, args, mensaje) {
                 if(fs.existsSync('./audios/' + comando + '.mp3')) {
 
                     // SI ESTÁ EN MODO MANUAL
-                    if(!automatico) {
+                    if(!automatico.automatico) {
                         const conexion = await voiceChannel.join();
 
-                        agregarCola(comando, conexion, mensaje);
+                        sonidos.agregarCola(comando, conexion, mensaje);
                     } else {
                         mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
                     }
@@ -74,158 +74,3 @@ async function leerComando(comando, args, mensaje) {
             break;
     }
 }
-
-function agregarCola(comando, conexion, mensaje) {
-
-    const sonido = {
-        comando: comando,
-        conexion: conexion,
-        mensaje: mensaje,
-    };
-
-    colaSonidos.push(sonido);
-
-    reproducirSonido();
-
-    mensaje.reply('Sonidito agregado a la lista');
-}
-
-function reproducirSonido() {
-
-    // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
-    if(!sonando) {
-
-        const sonido = colaSonidos.shift();
-
-        if(sonido !== undefined) {
-
-            const dispatcher = sonido.conexion.play('./audios/' + sonido.comando + '.mp3');
-
-            sonando = true;
-
-            dispatcher.on('finish', () => {
-
-                sonando = false;
-                dispatcher.destroy();
-
-                if(colaSonidos.length > 0) {
-                    reproducirSonido();
-                } else {
-                    sonido.mensaje.member.voice.channel.leave();
-                }
-            });
-        }
-    }
-}
-
-/************************************************************/
-/** MODO AUTOMÁTICO **/
-/************************************************************/
-
-function reproducirModoAutomatico(canales, audios) {
-
-    if(canales.length > 0) {
-
-        // SE LE PONE UN TIMEOUT ACÁ PORQUE SINO LA CONEXIÓN DEVUELVE NULL
-        setTimeout( async () => {
-
-            let canal = canales.shift();
-
-            const conexion = await canal.join();
-            const audio = audios[Math.floor(Math.random() * audios.length)];
-            const dispatcher = conexion.play('./audios/' + audio);
-
-            dispatcher.on('finish', () => {
-
-                dispatcher.destroy();
-                canal.leave();
-
-                reproducirModoAutomatico(canales, audios);
-            });
-
-        }, 1000);
-    } else {
-        sonando = false;
-        timerModoAutomaticoFuncionando = false;
-    }
-
-}
-
-function ejecutarModoAutomatico(mensaje) {
-
-    const canalesCache = mensaje.guild.channels.cache;
-    let canales = [];
-
-    if(!timerModoAutomaticoFuncionando) {
-
-        timerModoAutomaticoFuncionando = true;
-
-        fs.readdir('./audios', (err, audios) => {
-
-            sonando = true;
-
-            // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
-            canalesCache.map( (canal, iCanal) => {
-
-                if(canal.type === 'voice' && canal.members.size > 0) {
-                    canales.push(canal);
-                }
-            });
-
-            // CUANDO SE TERMINA LA RECURSIÓN AL REPRODUCIR
-            // SE SETEA SONANDO A FALSE PARA QUE PUEDA VOLVER A AGREGARSE A LA LISTA
-            reproducirModoAutomatico(canales, audios);
-
-        });
-    }
-
-}
-
-function modoAutomatico(modo, args, mensaje) {
-
-    if(modo) {
-
-        if(automatico) {
-            mensaje.reply('El modo automático ya está activado');
-        } else {
-
-            try {
-                let tiempo = 1800000; // MEDIA HORA EN MS
-
-                // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
-                if (args[0] !== undefined) {
-
-                    if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
-                        tiempo = parseInt(args[0]) * 1000 * 60;
-                    } else {
-                        throw Error('El argumento del tiempo tiene que ser un número válido');
-                    }
-                }
-
-                automatico = true;
-
-                timerModoAutomatico = setInterval(ejecutarModoAutomatico, tiempo, mensaje);
-
-                mensaje.reply('El modo automático fue activado');
-
-            } catch (e) {
-                mensaje.reply(e.toString());
-            }
-        }
-
-    } else {
-
-        if(!automatico) {
-            mensaje.reply('El modo manual ya está desactivado');
-        } else {
-            automatico = false;
-            clearInterval(timerModoAutomatico);
-
-            mensaje.reply('El modo automático fue desactivado');
-        }
-    }
-}
-
-/************************************************************/
-/** END MODO AUTOMÁTICO **/
-/************************************************************/
