@@ -188,8 +188,6 @@ function modoAutomatico(modo, args, mensaje) {
             mensaje.reply('El modo automático ya está activado');
         } else {
 
-            automatico = true;
-
             try {
                 let tiempo = 1800000; // MEDIA HORA EN MS
 
@@ -197,11 +195,13 @@ function modoAutomatico(modo, args, mensaje) {
                 if (args[0] !== undefined) {
 
                     if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
-                        tiempo = parseInt(args[0]) * 60;
+                        tiempo = parseInt(args[0]) * 1000 * 60;
                     } else {
                         throw Error('El argumento del tiempo tiene que ser un número válido');
                     }
                 }
+
+                automatico = true;
 
                 timerModoAutomatico = setInterval(ejecutarModoAutomatico, tiempo, mensaje);
 
