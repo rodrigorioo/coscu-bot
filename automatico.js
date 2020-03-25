@@ -7,6 +7,8 @@ let timerModoAutomaticoFuncionando = false;
 
 function reproducirModoAutomatico(canales, audios) {
 
+    // CUANDO SE TERMINA LA RECURSIÓN AL REPRODUCIR
+    // SE SETEA SONANDO A FALSE PARA QUE PUEDA VOLVER A AGREGARSE A LA LISTA
     if(canales.length > 0) {
 
         // SE LE PONE UN TIMEOUT ACÁ PORQUE SINO LA CONEXIÓN DEVUELVE NULL
@@ -55,9 +57,12 @@ function ejecutarModoAutomatico(mensaje) {
                 }
             });
 
-            // CUANDO SE TERMINA LA RECURSIÓN AL REPRODUCIR
-            // SE SETEA SONANDO A FALSE PARA QUE PUEDA VOLVER A AGREGARSE A LA LISTA
-            reproducirModoAutomatico(canales, audios);
+            if(canales.length > 0) {
+                reproducirModoAutomatico(canales, audios);
+            } else {
+                modoAutomatico(false, [], mensaje);
+                mensaje.channel.send('Se desactivó el modo automático debido a que no hay ningún sv donde entrar');
+            }
 
         });
     }

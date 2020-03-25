@@ -81,8 +81,6 @@ async function reconocerComando(mensaje, hash) {
 
 async function escucharVoz(mensaje, conexion) {
 
-    console.log('Escuchando');
-
     const receiver = conexion.receiver.createStream(mensaje.author, {
         mode: 'pcm',
         end: 'manual',
@@ -112,9 +110,26 @@ async function agregarEscucha(mensaje) {
     const voiceChannel = mensaje.member.voice.channel;
 
     if (voiceChannel) {
-        const conexion = await voiceChannel.join();
 
-        setInterval(escucharVoz, 10000, mensaje, conexion);
+        if(escucharUsuarios.has(mensaje.author.id)) {
+
+            mensaje.reply('Ahora el bot no te escucha más a vos rey!');
+
+            let intervalo = escucharUsuarios.get(mensaje.author.id);
+            clearInterval(intervalo);
+
+            escucharUsuarios.delete(mensaje.author.id);
+
+        } else {
+
+            mensaje.reply('Ahora el bot te está escuchando rey!');
+
+            const conexion = await voiceChannel.join();
+
+            let intervalo = setInterval(escucharVoz, 10000, mensaje, conexion);
+
+            escucharUsuarios.set(mensaje.author.id, intervalo);
+        }
 
     } else {
         mensaje.reply('Necesito ingresar a un canal para reconocer comandos por voz bb!!');
@@ -122,3 +137,4 @@ async function agregarEscucha(mensaje) {
 }
 
 exports.agregarEscucha = agregarEscucha;
+exports.escucharUsuarios = escucharUsuarios;

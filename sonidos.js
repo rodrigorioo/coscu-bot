@@ -1,3 +1,5 @@
+const escuchar = require('./escuchar');
+
 let sonando = false;
 let colaSonidos = [];
 
@@ -42,7 +44,11 @@ async function reproducirSonido() {
                     if(colaSonidos.length > 0) {
                         reproducirSonido();
                     } else {
-                        sonido.mensaje.member.voice.channel.leave();
+
+                        // SI NO HAY USUARIOS ESCUCHANDO
+                        if(escuchar.escucharUsuarios.size === 0) {
+                            sonido.mensaje.member.voice.channel.leave();
+                        }
                     }
                 });
             } else {
