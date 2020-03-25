@@ -2,6 +2,8 @@ require('dotenv').config({path: __dirname + '/.env'});
 const Discord = require('discord.js');
 const fs = require('fs');
 const axios = require('axios');
+const witai_speech = require('witai-speech');
+const fetch = require('node-fetch');
 
 const client = new Discord.Client();
 
@@ -51,6 +53,7 @@ async function leerComando(comando, args, mensaje) {
         case 'automatico': automatico.modoAutomatico(true, args, mensaje); break;
         case 'manual': automatico.modoAutomatico(false, args, mensaje); break;
         case 'escuchar': escucharVoz(mensaje); break;
+        case 'test': test(mensaje); break;
 
         default:
 
@@ -61,9 +64,7 @@ async function leerComando(comando, args, mensaje) {
 
                     // SI ESTÁ EN MODO MANUAL
                     if(!automatico.automatico) {
-                        const conexion = await voiceChannel.join();
-
-                        sonidos.agregarCola(comando, conexion, mensaje);
+                        sonidos.agregarCola(comando, mensaje);
                     } else {
                         mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
                     }
@@ -78,80 +79,50 @@ async function leerComando(comando, args, mensaje) {
     }
 }
 
-function agregarCola(comando, conexion, mensaje) {
-
-    const sonido = {
-        comando: comando,
-        conexion: conexion,
-        mensaje: mensaje,
-    };
-
-    colaSonidos.push(sonido);
-
-    reproducirSonido();
-
-    mensaje.reply('Sonidito agregado a la lista');
-}
-
-function reproducirSonido() {
-
-    // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
-    if(!sonando) {
-
-        const sonido = colaSonidos.shift();
-
-        if(sonido !== undefined) {
-
-            const dispatcher = sonido.conexion.play('./audios/' + sonido.comando + '.mp3');
-
-            sonando = true;
-
-            dispatcher.on('finish', () => {
-
-                sonando = false;
-                dispatcher.destroy();
-
-                if(colaSonidos.length > 0) {
-                    reproducirSonido();
-                } else {
-                    sonido.mensaje.member.voice.channel.leave();
-                }
-            });
-        }
-    }
-}
-
 /************************************************************/
 /** WIT.AI **/
 /************************************************************/
 
-function reconocerComando(mensaje) {
+const { Transform } = require('stream');
 
-    const dataSpeech = {
+function convertBufferTo1Channel(buffer) {
+    const convertedBuffer = Buffer.alloc(buffer.length / 2);
 
-    };
+    for (let i = 0; i < convertedBuffer.length / 2; i++) {
+        const uint16 = buffer.readUInt16LE(i * 4);
+        convertedBuffer.writeUInt16LE(uint16, i * 2)
+    }
 
-    const opcionesSpeech = {
-        headers: {
-            "Authorization": "Bearer " + process.env['TOKEN_WIT'],
-            "Content-Type": 'audio/mpeg3',
-        }
-    };
-
-    axios.post('https://api.wit.ai/speech?v=20170307', dataSpeech, opcionesSpeech)
-        .then((res) => {
-            console.log(`statusCode: ${res.statusCode}`)
-            console.log(res)
-        })
-        .catch((error) => {
-            console.error(error)
-        });
+    return convertedBuffer
 }
 
-function generateOutputFile(channel, member) {
-    // use IDs instead of username cause some people have stupid emojis in their name
-    const fileName = `./grabaciones/${channel.id}-${member.id}-${Date.now()}.pcm`;
-    return fs.createWriteStream(fileName);
+class ConvertTo1ChannelStream extends Transform {
+    constructor(source, options) {
+        super(options)
+    }
+
+    _transform(data, encoding, next) {
+        next(null, convertBufferTo1Channel(data))
+    }
+}
+
+async function reconocerComando(mensaje) {
+
+    const stream = fs.createReadStream('./grabaciones/test1');
+
+    const dataSpeech = {
+        method: 'POST',
+        headers: {
+            "Authorization": "Bearer " + process.env['TOKEN_WIT'],
+            "Content-Type": 'audio/raw;encoding=signed-integer;bits=16;rate=48000;endian=little',
+        },
+        body: stream,
+    };
+
+    let respuestaConsulta = await fetch('https://api.wit.ai/speech', dataSpeech);
+    let jsonRespuesta = await respuestaConsulta.json();
+
+    console.log(jsonRespuesta);
 }
 
 async function escucharVoz(mensaje) {
@@ -165,13 +136,14 @@ async function escucharVoz(mensaje) {
             mode: 'pcm'
         });
 
-        receiver.pipe(fs.createWriteStream('./grabaciones/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)));
+        const convertTo1ChannelStream = new ConvertTo1ChannelStream();
 
-        // conexion.on('speaking', (user, speaking) => {
-        //     if (speaking) {
-        //         receiver.pipe(fs.createWriteStream('./grabaciones/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '.mp3'));
-        //     }
-        // });
+        conexion.on('speaking', (user, speaking) => {
+            if (speaking) {
+                let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
+            }
+        });
 
     } else {
         mensaje.reply('Necesito ingresar a un canal para reconocer comandos por voz bb!!');
@@ -179,118 +151,12 @@ async function escucharVoz(mensaje) {
 
 }
 
+function test(mensaje) {
+
+    reconocerComando(mensaje);
+
+}
+
 /************************************************************/
 /** END WIT.AI **/
-/************************************************************/
-
-/************************************************************/
-/** MODO AUTOMÁTICO **/
-/************************************************************/
-
-function reproducirModoAutomatico(canales, audios) {
-
-    if(canales.length > 0) {
-
-        // SE LE PONE UN TIMEOUT ACÁ PORQUE SINO LA CONEXIÓN DEVUELVE NULL
-        setTimeout( async () => {
-
-            let canal = canales.shift();
-
-            const conexion = await canal.join();
-            const audio = audios[Math.floor(Math.random() * audios.length)];
-            const dispatcher = conexion.play('./audios/' + audio);
-
-            dispatcher.on('finish', () => {
-
-                dispatcher.destroy();
-                canal.leave();
-
-                reproducirModoAutomatico(canales, audios);
-            });
-
-        }, 1000);
-    } else {
-        sonando = false;
-        timerModoAutomaticoFuncionando = false;
-    }
-
-}
-
-function ejecutarModoAutomatico(mensaje) {
-
-    const canalesCache = mensaje.guild.channels.cache;
-    let canales = [];
-
-    if(!timerModoAutomaticoFuncionando) {
-
-        timerModoAutomaticoFuncionando = true;
-
-        fs.readdir('./audios', (err, audios) => {
-
-            sonando = true;
-
-            // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
-            canalesCache.map( (canal, iCanal) => {
-
-                if(canal.type === 'voice' && canal.members.size > 0) {
-                    canales.push(canal);
-                }
-            });
-
-            // CUANDO SE TERMINA LA RECURSIÓN AL REPRODUCIR
-            // SE SETEA SONANDO A FALSE PARA QUE PUEDA VOLVER A AGREGARSE A LA LISTA
-            reproducirModoAutomatico(canales, audios);
-
-        });
-    }
-
-}
-
-function modoAutomatico(modo, args, mensaje) {
-
-    if(modo) {
-
-        if(automatico) {
-            mensaje.reply('El modo automático ya está activado');
-        } else {
-
-            try {
-                let tiempo = 1800000; // MEDIA HORA EN MS
-
-                // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
-                if (args[0] !== undefined) {
-
-                    if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
-                        tiempo = parseInt(args[0]) * 1000 * 60;
-                    } else {
-                        throw Error('El argumento del tiempo tiene que ser un número válido');
-                    }
-                }
-
-                automatico = true;
-
-                timerModoAutomatico = setInterval(ejecutarModoAutomatico, tiempo, mensaje);
-
-                mensaje.reply('El modo automático fue activado');
-
-            } catch (e) {
-                mensaje.reply(e.toString());
-            }
-        }
-
-    } else {
-
-        if(!automatico) {
-            mensaje.reply('El modo manual ya está desactivado');
-        } else {
-            automatico = false;
-            clearInterval(timerModoAutomatico);
-
-            mensaje.reply('El modo automático fue desactivado');
-        }
-    }
-}
-
-/************************************************************/
-/** END MODO AUTOMÁTICO **/
 /************************************************************/

@@ -1,11 +1,10 @@
 let sonando = false;
 let colaSonidos = [];
 
-function agregarCola(comando, conexion, mensaje) {
+function agregarCola(comando, mensaje) {
 
     const sonido = {
         comando: comando,
-        conexion: conexion,
         mensaje: mensaje,
     };
 
@@ -16,7 +15,7 @@ function agregarCola(comando, conexion, mensaje) {
     mensaje.reply('Sonidito agregado a la lista');
 }
 
-function reproducirSonido() {
+async function reproducirSonido() {
 
     // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
     if(!sonando) {
@@ -25,21 +24,30 @@ function reproducirSonido() {
 
         if(sonido !== undefined) {
 
-            const dispatcher = sonido.conexion.play('./audios/' + sonido.comando + '.mp3');
+            const voiceChannel = sonido.mensaje.member.voice.channel;
 
-            sonando = true;
+            if (voiceChannel) {
 
-            dispatcher.on('finish', () => {
+                const conexion = await voiceChannel.join();
 
-                sonando = false;
-                dispatcher.destroy();
+                const dispatcher = conexion.play('./audios/' + sonido.comando + '.mp3');
 
-                if(colaSonidos.length > 0) {
-                    reproducirSonido();
-                } else {
-                    sonido.mensaje.member.voice.channel.leave();
-                }
-            });
+                sonando = true;
+
+                dispatcher.on('finish', () => {
+
+                    sonando = false;
+                    dispatcher.destroy();
+
+                    if(colaSonidos.length > 0) {
+                        reproducirSonido();
+                    } else {
+                        sonido.mensaje.member.voice.channel.leave();
+                    }
+                });
+            } else {
+                mensaje.reply('Bbto metete a un chanel para escucharme');
+            }
         }
     }
 }

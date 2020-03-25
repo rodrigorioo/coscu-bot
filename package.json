@@ -15,6 +15,8 @@
     "discord.js": "^12.0.2",
     "dotenv": "^8.2.0",
     "ffmpeg-static": "^4.0.1",
-    "node-opus": "^0.3.3"
+    "node-opus": "^0.3.3",
+    "witai-speech": "^0.2.0",
+    "node-fetch": "latest"
   }
 }
