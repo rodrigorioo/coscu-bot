@@ -122,16 +122,28 @@ async function reconocerComando(mensaje, hash) {
     };
 
     let respuestaConsulta = await fetch('https://api.wit.ai/speech', dataSpeech);
-    let jsonRespuesta = await respuestaConsulta.json();
+    let consulta = await respuestaConsulta.json();
 
-    console.log(jsonRespuesta);
+    if('entities' in consulta) {
 
-    // fs.unlink(archivoAudio, (err) => {
-    //     if (err) {
-    //         console.error(err)
-    //         return;
-    //     }
-    // });
+        if('intent' in consulta.entities) {
+            let intents = consulta.entities.intent;
+
+            intents.forEach((intent, iIntent) => {
+
+                if (intent.confidence > 0.75) {
+                    sonidos.agregarCola(intent.value, mensaje);
+                }
+            });
+        }
+    }
+
+    fs.unlink(archivoAudio, (err) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+    });
 }
 
 async function escucharVoz(mensaje) {
@@ -148,6 +160,7 @@ async function escucharVoz(mensaje) {
         const convertTo1ChannelStream = new ConvertTo1ChannelStream();
 
         conexion.on('speaking', (user, speaking) => {
+
             if (speaking) {
                 let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
                 receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
