@@ -1,9 +1,6 @@
 require('dotenv').config({path: __dirname + '/.env'});
 const Discord = require('discord.js');
 const fs = require('fs');
-const axios = require('axios');
-const witai_speech = require('witai-speech');
-const fetch = require('node-fetch');
 
 const client = new Discord.Client();
 
@@ -11,6 +8,7 @@ const client = new Discord.Client();
 
 const sonidos = require('./sonidos');
 const automatico = require('./automatico');
+const escuchar = require('./escuchar');
 
 /** END MIS MODULOS */
 
@@ -52,8 +50,7 @@ async function leerComando(comando, args, mensaje) {
             mensaje.reply(msg); break;
         case 'automatico': automatico.modoAutomatico(true, args, mensaje); break;
         case 'manual': automatico.modoAutomatico(false, args, mensaje); break;
-        case 'escuchar': escucharVoz(mensaje); break;
-        case 'test': test(mensaje); break;
+        case 'escuchar': escuchar.agregarEscucha(mensaje); break;
 
         default:
 
@@ -78,108 +75,3 @@ async function leerComando(comando, args, mensaje) {
             break;
     }
 }
-
-/************************************************************/
-/** WIT.AI **/
-/************************************************************/
-
-const { Transform } = require('stream');
-
-function convertBufferTo1Channel(buffer) {
-    const convertedBuffer = Buffer.alloc(buffer.length / 2);
-
-    for (let i = 0; i < convertedBuffer.length / 2; i++) {
-        const uint16 = buffer.readUInt16LE(i * 4);
-        convertedBuffer.writeUInt16LE(uint16, i * 2)
-    }
-
-    return convertedBuffer
-}
-
-class ConvertTo1ChannelStream extends Transform {
-    constructor(source, options) {
-        super(options)
-    }
-
-    _transform(data, encoding, next) {
-        next(null, convertBufferTo1Channel(data))
-    }
-}
-
-async function reconocerComando(mensaje, hash) {
-
-    const archivoAudio = './grabaciones/' + hash;
-
-    const stream = fs.createReadStream(archivoAudio);
-
-    const dataSpeech = {
-        method: 'POST',
-        headers: {
-            "Authorization": "Bearer " + process.env['TOKEN_WIT'],
-            "Content-Type": 'audio/raw;encoding=signed-integer;bits=16;rate=48000;endian=little',
-        },
-        body: stream,
-    };
-
-    let respuestaConsulta = await fetch('https://api.wit.ai/speech', dataSpeech);
-    let consulta = await respuestaConsulta.json();
-
-    if('entities' in consulta) {
-
-        if('intent' in consulta.entities) {
-            let intents = consulta.entities.intent;
-
-            intents.forEach((intent, iIntent) => {
-
-                if (intent.confidence > 0.75) {
-                    sonidos.agregarCola(intent.value, mensaje);
-                }
-            });
-        }
-    }
-
-    fs.unlink(archivoAudio, (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-    });
-}
-
-async function escucharVoz(mensaje) {
-
-    const voiceChannel = mensaje.member.voice.channel;
-
-    if (voiceChannel) {
-        const conexion = await voiceChannel.join();
-
-        const receiver = conexion.receiver.createStream(mensaje.author, {
-            mode: 'pcm'
-        });
-
-        const convertTo1ChannelStream = new ConvertTo1ChannelStream();
-
-        conexion.on('speaking', (user, speaking) => {
-
-            if (speaking) {
-                let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
-
-                reconocerComando(mensaje, hashGrabacion);
-            }
-        });
-
-    } else {
-        mensaje.reply('Necesito ingresar a un canal para reconocer comandos por voz bb!!');
-    }
-
-}
-
-function test(mensaje) {
-
-    reconocerComando(mensaje, 'buenardo');
-}
-
-/************************************************************/
-/** END WIT.AI **/
-/************************************************************/
