@@ -106,9 +106,11 @@ class ConvertTo1ChannelStream extends Transform {
     }
 }
 
-async function reconocerComando(mensaje) {
+async function reconocerComando(mensaje, hash) {
 
-    const stream = fs.createReadStream('./grabaciones/test1');
+    const archivoAudio = './grabaciones/' + hash;
+
+    const stream = fs.createReadStream(archivoAudio);
 
     const dataSpeech = {
         method: 'POST',
@@ -123,6 +125,13 @@ async function reconocerComando(mensaje) {
     let jsonRespuesta = await respuestaConsulta.json();
 
     console.log(jsonRespuesta);
+
+    // fs.unlink(archivoAudio, (err) => {
+    //     if (err) {
+    //         console.error(err)
+    //         return;
+    //     }
+    // });
 }
 
 async function escucharVoz(mensaje) {
@@ -142,6 +151,8 @@ async function escucharVoz(mensaje) {
             if (speaking) {
                 let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
                 receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
+
+                reconocerComando(mensaje, hashGrabacion);
             }
         });
 
@@ -153,8 +164,7 @@ async function escucharVoz(mensaje) {
 
 function test(mensaje) {
 
-    reconocerComando(mensaje);
-
+    reconocerComando(mensaje, 'buenardo');
 }
 
 /************************************************************/
