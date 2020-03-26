@@ -43,9 +43,6 @@ async function reconocerComando(mensaje, hash) {
     const informacionArchivoAudio = fs.statSync(archivoAudio);
     const tamanioArchivoAudio = informacionArchivoAudio["size"];
 
-    console.log("Archivo existe: " + !fs.existsSync(archivoAudio));
-    console.log("Tamaño archivo: " + tamanioArchivoAudio);
-
     // SI EL ARCHIVO PESA ALGO (ESTO ES PARA VERIFICAR QUE EL USUARIO HAYA HABLADO)
     if(tamanioArchivoAudio) {
 
