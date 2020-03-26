@@ -12,10 +12,6 @@ const escuchar = require('./escuchar');
 
 /** END MIS MODULOS */
 
-/** CONFIGURACION BOT */
-
-/** END CONFIGURACION BOT */
-
 client.login(process.env['TOKEN']);
 
 client.on('message', async mensaje => {

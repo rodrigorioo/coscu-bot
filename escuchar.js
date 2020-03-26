@@ -2,8 +2,11 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 
 const sonidos = require('./sonidos');
+const automatico = require('./automatico');
 
-let escucharUsuarios = new Map();
+let usuariosEscuchando = new Map();
+let chanelDeEscucha = null;
+let conexionChanelDeEscucha = null;
 
 // ESTO ES PARA CONVERTIR EL AUDIO STEREO A MONO
 // ***************************************************************************************
@@ -79,26 +82,69 @@ async function reconocerComando(mensaje, hash) {
     });
 }
 
-async function escucharVoz(mensaje, conexion) {
+async function escucharVoz(mensaje) {
 
-    const receiver = conexion.receiver.createStream(mensaje.author, {
-        mode: 'pcm',
-        end: 'manual',
-    });
+    if(verificarChanelEscucha(mensaje)) {
 
-    const convertTo1ChannelStream = new ConvertTo1ChannelStream();
+        const receiver = conexionChanelDeEscucha.receiver.createStream(mensaje.author, {
+            mode: 'pcm',
+            end: 'manual',
+        });
 
-    let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
+        const convertTo1ChannelStream = new ConvertTo1ChannelStream();
 
-    setTimeout( () => {
+        let hashGrabacion = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        receiver.pipe(convertTo1ChannelStream).pipe(fs.createWriteStream('./grabaciones/' + hashGrabacion));
 
-        reconocerComando(mensaje, hashGrabacion);
+        setTimeout(() => {
 
-        receiver.destroy();
+            reconocerComando(mensaje, hashGrabacion);
 
-    }, 3000);
+            receiver.destroy();
 
+        }, 3000);
+    } else {
+
+        // ACÁ LLEGA SI EL USUARIO ESTABA ESCUCHANDO Y SE CAMBIÓ DE CANAL
+        // LO ELIMINAMOS DE LAS ESCUCHAS
+        eliminarUsuarioEscucha(mensaje);
+    }
+
+}
+
+function setearChanelEscucha(mensaje) {
+
+    if(usuariosEscuchando.size === 1) {
+        chanelDeEscucha = mensaje.member.voice.channel;
+    }
+}
+
+function verificarChanelEscucha(mensaje) {
+
+    if(chanelDeEscucha === null) {
+        return true;
+    }
+
+    if(chanelDeEscucha.id === mensaje.member.voice.channel.id) {
+        return true;
+    }
+
+    mensaje.reply('El bot sólo puede escuchar un server a la vez');
+    return false;
+}
+
+function eliminarUsuarioEscucha(mensaje) {
+    mensaje.reply('Ahora el bot no te escucha más a vos rey!');
+
+    let intervalo = usuariosEscuchando.get(mensaje.author.id);
+    clearInterval(intervalo);
+
+    usuariosEscuchando.delete(mensaje.author.id);
+
+    if(usuariosEscuchando.size === 0) {
+        chanelDeEscucha.leave();
+        chanelDeEscucha = null;
+    }
 }
 
 async function agregarEscucha(mensaje) {
@@ -111,24 +157,39 @@ async function agregarEscucha(mensaje) {
 
     if (voiceChannel) {
 
-        if(escucharUsuarios.has(mensaje.author.id)) {
+        // SI NO ESTÁ EN MODO AUTOMÁTICO
+        if(!automatico.automatico) {
 
-            mensaje.reply('Ahora el bot no te escucha más a vos rey!');
+            // SI EL BOT NO ESTÁ SONANDO
+            if(!sonidos.sonando) {
 
-            let intervalo = escucharUsuarios.get(mensaje.author.id);
-            clearInterval(intervalo);
+                // SI EL USUARIO ESTABA ESCUCHANDO, LO DEJAMOS DE ESCUCHAR
+                if (usuariosEscuchando.has(mensaje.author.id)) {
 
-            escucharUsuarios.delete(mensaje.author.id);
+                    eliminarUsuarioEscucha(mensaje);
 
+                } else {
+
+                    // VERIFICAMOS QUE EL CANAL DONDE ESTA ES EL MISMO QUE EL DE ESCUCHA
+                    if(verificarChanelEscucha(mensaje)) {
+                        mensaje.reply('Ahora el bot te está escuchando rey!');
+
+                        conexionChanelDeEscucha = await voiceChannel.join();
+
+                        let intervalo = setInterval(escucharVoz, 10000, mensaje, conexionChanelDeEscucha);
+
+                        usuariosEscuchando.set(mensaje.author.id, intervalo);
+                    }
+
+                }
+
+                setearChanelEscucha(mensaje);
+
+            } else {
+                mensaje.reply('El bot está sonando bbto, espera que termine y te escucho ♥');
+            }
         } else {
-
-            mensaje.reply('Ahora el bot te está escuchando rey!');
-
-            const conexion = await voiceChannel.join();
-
-            let intervalo = setInterval(escucharVoz, 10000, mensaje, conexion);
-
-            escucharUsuarios.set(mensaje.author.id, intervalo);
+            mensaje.reply('Sólo te puedo escuchar si el bot está en modo manual');
         }
 
     } else {
@@ -137,4 +198,5 @@ async function agregarEscucha(mensaje) {
 }
 
 exports.agregarEscucha = agregarEscucha;
-exports.escucharUsuarios = escucharUsuarios;
+exports.reconocerComando = reconocerComando;
+exports.usuariosEscuchando = usuariosEscuchando;

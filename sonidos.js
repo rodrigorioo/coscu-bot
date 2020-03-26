@@ -46,7 +46,7 @@ async function reproducirSonido() {
                     } else {
 
                         // SI NO HAY USUARIOS ESCUCHANDO
-                        if(escuchar.escucharUsuarios.size === 0) {
+                        if(escuchar.usuariosEscuchando.size === 0) {
                             sonido.mensaje.member.voice.channel.leave();
                         }
                     }
