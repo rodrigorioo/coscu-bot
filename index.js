@@ -16,22 +16,20 @@ client.login(process.env['TOKEN']);
 
 client.on('message', async mensaje => {
 
-    if(!mensaje.client.user !== client.user) {
-        if (mensaje.content.includes('c!')) {
+    if (mensaje.content.includes('c!')) {
 
-            let args = [];
-            let comando = mensaje.content.split('c!')[1];
+        let args = [];
+        let comando = mensaje.content.split('c!')[1];
 
-            // SI EL STRING TIENE ESPACIOS
-            if (/\s/.test(comando)) {
+        // SI EL STRING TIENE ESPACIOS
+        if (/\s/.test(comando)) {
 
-                args = comando.split(' '); // DIVIDIMOS EN ARRAYS POR ESPACIOS
-                comando = args.shift(); // SACAMOS EL PRIMER ITEM QUE SERÍA EL COMANDO, LO DEMÁS SON LOS ARGUMENTOS QUE LE SIGUEN
-            }
+            args = comando.split(' '); // DIVIDIMOS EN ARRAYS POR ESPACIOS
+            comando = args.shift(); // SACAMOS EL PRIMER ITEM QUE SERÍA EL COMANDO, LO DEMÁS SON LOS ARGUMENTOS QUE LE SIGUEN
+        }
 
-            if (comando.length > 1) {
-                leerComando(comando, args, mensaje);
-            }
+        if (comando.length > 1) {
+            leerComando(comando, args, mensaje);
         }
     }
 });
@@ -50,22 +48,24 @@ async function leerComando(comando, args, mensaje) {
 
         default:
 
-            const voiceChannel = mensaje.member.voice.channel;
+            if(mensaje.member.id !== client.user.id) {
+                const voiceChannel = mensaje.member.voice.channel;
 
-            if (voiceChannel) {
-                if(fs.existsSync('./audios/' + comando + '.mp3')) {
+                if (voiceChannel) {
+                    if (fs.existsSync('./audios/' + comando + '.mp3')) {
 
-                    // SI ESTÁ EN MODO MANUAL
-                    if(!automatico.automatico) {
-                        sonidos.agregarCola(comando, mensaje);
+                        // SI ESTÁ EN MODO MANUAL
+                        if (!automatico.automatico) {
+                            sonidos.agregarCola(comando, mensaje);
+                        } else {
+                            mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
+                        }
                     } else {
-                        mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
+                        mensaje.reply('mMm ese comandovich no lo tengo');
                     }
                 } else {
-                    mensaje.reply('mMm ese comandovich no lo tengo');
+                    mensaje.reply('Bbto metete a un chanel para escucharme');
                 }
-            } else {
-                mensaje.reply('Bbto metete a un chanel para escucharme');
             }
 
             break;
