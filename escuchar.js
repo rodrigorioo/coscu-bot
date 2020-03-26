@@ -60,6 +60,8 @@ async function reconocerComando(mensaje, hash) {
         let respuestaConsulta = await fetch('https://api.wit.ai/speech', dataSpeech);
         let consulta = await respuestaConsulta.json();
 
+        console.log(consulta);
+
         if ('entities' in consulta) {
 
             if ('intent' in consulta.entities) {
