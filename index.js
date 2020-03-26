@@ -6,9 +6,9 @@ const client = new Discord.Client();
 
 /** MIS MODULOS */
 
-const sonidos = require('./sonidos');
-const automatico = require('./automatico');
-const escuchar = require('./escuchar');
+const sonidos = require('./src/sonidos');
+const automatico = require('./src/automatico');
+const escuchar = require('./src/escuchar');
 
 /** END MIS MODULOS */
 
