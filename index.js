@@ -16,7 +16,7 @@ client.login(process.env['TOKEN']);
 
 client.on('message', async mensaje => {
 
-    if(!mensaje.author.bot) {
+    if(!mensaje.client.user !== client.user) {
         if (mensaje.content.includes('c!')) {
 
             let args = [];
