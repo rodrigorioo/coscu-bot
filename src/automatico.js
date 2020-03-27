@@ -1,10 +1,10 @@
 const fs = require('fs');
-const sonidos = require('./sonidos');
+
+const data = require('./data');
 
 class Automatico {
 
     constructor() {
-        this._automatico = false;
         this._timerModoAutomatico = null;
         this._timerModoAutomaticoFuncionando = false;
     }
@@ -36,7 +36,7 @@ class Automatico {
 
             }, 1000);
         } else {
-            sonidos.sonando = false;
+            data.sonando = false;
             this.timerModoAutomaticoFuncionando = false;
         }
 
@@ -53,7 +53,7 @@ class Automatico {
 
             fs.readdir('./audios', (err, audios) => {
 
-                sonidos.sonando = true;
+                data.sonando = true;
 
                 // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
                 canalesCache.map( (canal, iCanal) => {

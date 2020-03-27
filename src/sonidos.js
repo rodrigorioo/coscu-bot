@@ -1,10 +1,9 @@
-const escuchar = require('./escuchar');
+const data = require('./data');
 
 class Sonido {
 
     constructor() {
         this._colaSonidos = [];
-        this._sonando = false;
     }
 
     /** METODOS */
@@ -52,7 +51,7 @@ class Sonido {
                         } else {
 
                             // SI NO HAY USUARIOS ESCUCHANDO
-                            if(escuchar.usuariosEscuchando.size === 0) {
+                            if(data.usuariosEscuchando.size === 0) {
                                 sonido.mensaje.member.voice.channel.leave();
                             }
                         }
@@ -68,13 +67,6 @@ class Sonido {
 
     /** GETTERS & SETTERS */
 
-    get sonando() {
-        return this._sonando;
-    }
-
-    set sonando(value) {
-        this._sonando = value;
-    }
     get colaSonidos() {
         return this._colaSonidos;
     }

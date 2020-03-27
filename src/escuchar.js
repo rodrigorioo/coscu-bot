@@ -2,7 +2,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 
 const sonidos = require('./sonidos');
-const automatico = require('./automatico');
+const data = require('./data');
 
 // ESTO ES PARA CONVERTIR EL AUDIO STEREO A MONO
 // ***************************************************************************************
@@ -36,7 +36,6 @@ class ConvertTo1ChannelStream extends Transform {
 class Escuchar {
 
     constructor() {
-        this._usuariosEscuchando = new Map();
         this._chanelDeEscucha = null;
         this._conexionChanelDeEscucha = null;
     }
@@ -90,11 +89,7 @@ class Escuchar {
 
     async escucharVoz(mensaje) {
 
-        console.log(sonidos.sonando);
-
         if(this.verificarChanelEscucha(mensaje)) {
-
-            console.log("Escuchar");
 
             const receiver = this.conexionChanelDeEscucha.receiver.createStream(mensaje.author, {
                 mode: 'pcm',
@@ -124,7 +119,7 @@ class Escuchar {
 
     setearChanelEscucha(mensaje) {
 
-        if(this.usuariosEscuchando.size === 1) {
+        if(data.usuariosEscuchando.size === 1) {
             this.chanelDeEscucha = mensaje.member.voice.channel;
         }
     }
@@ -146,20 +141,18 @@ class Escuchar {
     eliminarUsuarioEscucha(mensaje) {
         mensaje.reply('Ahora el bot no te escucha más a vos rey!');
 
-        let intervalo = this.usuariosEscuchando.get(mensaje.author.id);
+        let intervalo = data.usuariosEscuchando.get(mensaje.author.id);
         clearInterval(intervalo);
 
-        this.usuariosEscuchando.delete(mensaje.author.id);
+        data.usuariosEscuchando.delete(mensaje.author.id);
 
-        if(this.usuariosEscuchando.size === 0) {
+        if(data.usuariosEscuchando.size === 0) {
             this.chanelDeEscucha.leave();
             this.chanelDeEscucha = null;
         }
     }
 
     async agregarEscucha(mensaje) {
-
-        console.log(sonidos.sonando);
 
         if (!fs.existsSync('./grabaciones')){
             fs.mkdirSync('./grabaciones');
@@ -170,13 +163,13 @@ class Escuchar {
         if (voiceChannel) {
 
             // SI NO ESTÁ EN MODO AUTOMÁTICO
-            if(!automatico.automatico) {
+            if(!data.automatico) {
 
                 // SI EL BOT NO ESTÁ SONANDO
-                if(!sonidos.sonando) {
+                if(!data.sonando) {
 
                     // SI EL USUARIO ESTABA ESCUCHANDO, LO DEJAMOS DE ESCUCHAR
-                    if (this.usuariosEscuchando.has(mensaje.author.id)) {
+                    if (data.usuariosEscuchando.has(mensaje.author.id)) {
 
                         this.eliminarUsuarioEscucha(mensaje);
 
@@ -190,7 +183,7 @@ class Escuchar {
 
                             let intervalo = setInterval(this.escucharVoz.bind(this), 10000, mensaje);
 
-                            this.usuariosEscuchando.set(mensaje.author.id, intervalo);
+                            data.usuariosEscuchando.set(mensaje.author.id, intervalo);
                         }
 
                     }
@@ -212,14 +205,6 @@ class Escuchar {
     /** END MÉTODOS */
 
     /** GETTERS & SETTERS */
-
-    get usuariosEscuchando() {
-        return this._usuariosEscuchando;
-    }
-
-    set usuariosEscuchando(value) {
-        this._usuariosEscuchando = value;
-    }
 
     get chanelDeEscucha() {
         return this._chanelDeEscucha;
