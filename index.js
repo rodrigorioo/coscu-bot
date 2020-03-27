@@ -1,16 +1,9 @@
 require('dotenv').config({path: __dirname + '/.env'});
 const Discord = require('discord.js');
 const fs = require('fs');
-
 const client = new Discord.Client();
 
-/** MIS MODULOS */
-
-const sonidos = require('./sonidos');
-const automatico = require('./automatico');
-const escuchar = require('./escuchar');
-
-/** END MIS MODULOS */
+const app = require('./src');
 
 client.login(process.env['TOKEN']);
 
@@ -42,9 +35,9 @@ async function leerComando(comando, args, mensaje) {
                 "c!manual: El bot solo va a funcionar por comando\n" +
                 "c!automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n";
             mensaje.reply(msg); break;
-        case 'automatico': automatico.modoAutomatico(true, args, mensaje); break;
-        case 'manual': automatico.modoAutomatico(false, args, mensaje); break;
-        case 'escuchar': escuchar.agregarEscucha(mensaje); break;
+        case 'automatico': app.automatico.modoAutomatico(true, args, mensaje); break;
+        case 'manual': app.automatico.modoAutomatico(false, args, mensaje); break;
+        case 'escuchar': app.escuchar.agregarEscucha(mensaje); break;
 
         default:
 
@@ -55,8 +48,8 @@ async function leerComando(comando, args, mensaje) {
                     if (fs.existsSync('./audios/' + comando + '.mp3')) {
 
                         // SI ESTÁ EN MODO MANUAL
-                        if (!automatico.automatico) {
-                            sonidos.agregarCola(comando, mensaje);
+                        if (!app.data.automatico) {
+                            app.sonidos.agregarCola(comando, mensaje);
                         } else {
                             mensaje.reply('El bot está en modo automático brEEEo, desactivalo con c!manual');
                         }
