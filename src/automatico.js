@@ -83,28 +83,23 @@ class Automatico {
                 mensaje.reply('El modo automático ya está activado');
             } else {
 
-                try {
-                    let tiempo = 1800000; // MEDIA HORA EN MS
+                let tiempo = 1800000; // MEDIA HORA EN MS
 
-                    // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
-                    if (args[0] !== undefined) {
+                // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
+                if (args[0] !== undefined) {
 
-                        if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
-                            tiempo = parseInt(args[0]) * 1000 * 60;
-                        } else {
-                            throw Error('El argumento del tiempo tiene que ser un número válido');
-                        }
+                    if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
+                        tiempo = parseInt(args[0]) * 1000 * 60;
+                    } else {
+                        mensaje.reply('El argumento del tiempo tiene que ser un número válido');
                     }
-
-                    this.automatico = true;
-
-                    this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
-
-                    mensaje.reply('El modo automático fue activado');
-
-                } catch (e) {
-                    mensaje.reply(e.toString());
                 }
+
+                this.automatico = true;
+
+                this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
+
+                mensaje.reply('El modo automático fue activado');
             }
 
         } else {
