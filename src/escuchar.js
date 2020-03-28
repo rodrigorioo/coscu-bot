@@ -57,8 +57,8 @@ class Escuchar {
                 method: 'POST',
                 headers: {
                     "Authorization": "Bearer " + process.env['TOKEN_WIT'],
-                    // "Content-Type": 'audio/raw;encoding=signed-integer;bits=16;rate=44100;endian=little',
-                    "Content-Type": 'audio/mpeg3',
+                    "Content-Type": 'audio/raw;encoding=signed-integer;bits=16;rate=44100;endian=little',
+                    // "Content-Type": 'audio/mpeg3',
                 },
                 body: stream,
             };
