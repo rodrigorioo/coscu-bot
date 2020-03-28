@@ -80,7 +80,7 @@ class Automatico {
         if(data.usuariosEscuchando.size === 0) {
             if (modo) {
 
-                if (this.automatico) {
+                if (data.automatico) {
                     mensaje.reply('El modo automático ya está activado');
                 } else {
 
@@ -96,7 +96,7 @@ class Automatico {
                         }
                     }
 
-                    this.automatico = true;
+                    data.automatico = true;
 
                     this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
 
@@ -105,10 +105,10 @@ class Automatico {
 
             } else {
 
-                if (!this.automatico) {
+                if (!data.automatico) {
                     mensaje.reply('El modo manual ya está desactivado');
                 } else {
-                    this.automatico = false;
+                    data.automatico = false;
                     clearInterval(this.timerModoAutomatico);
 
                     mensaje.reply('El modo automático fue desactivado');
