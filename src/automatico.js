@@ -77,41 +77,45 @@ class Automatico {
 
     modoAutomatico(modo, args, mensaje) {
 
-        if(modo) {
+        if(data.usuariosEscuchando.size === 0) {
+            if (modo) {
 
-            if(this.automatico) {
-                mensaje.reply('El modo automático ya está activado');
-            } else {
+                if (this.automatico) {
+                    mensaje.reply('El modo automático ya está activado');
+                } else {
 
-                let tiempo = 1800000; // MEDIA HORA EN MS
+                    let tiempo = 1800000; // MEDIA HORA EN MS
 
-                // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
-                if (args[0] !== undefined) {
+                    // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
+                    if (args[0] !== undefined) {
 
-                    if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
-                        tiempo = parseInt(args[0]) * 1000 * 60;
-                    } else {
-                        mensaje.reply('El argumento del tiempo tiene que ser un número válido');
+                        if (Number.isInteger(parseInt(args[0])) && parseInt(args[0]) >= 1) {
+                            tiempo = parseInt(args[0]) * 1000 * 60;
+                        } else {
+                            mensaje.reply('El argumento del tiempo tiene que ser un número válido');
+                        }
                     }
+
+                    this.automatico = true;
+
+                    this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
+
+                    mensaje.reply('El modo automático fue activado');
                 }
 
-                this.automatico = true;
-
-                this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
-
-                mensaje.reply('El modo automático fue activado');
-            }
-
-        } else {
-
-            if(!this.automatico) {
-                mensaje.reply('El modo manual ya está desactivado');
             } else {
-                this.automatico = false;
-                clearInterval(this.timerModoAutomatico);
 
-                mensaje.reply('El modo automático fue desactivado');
+                if (!this.automatico) {
+                    mensaje.reply('El modo manual ya está desactivado');
+                } else {
+                    this.automatico = false;
+                    clearInterval(this.timerModoAutomatico);
+
+                    mensaje.reply('El modo automático fue desactivado');
+                }
             }
+        } else {
+            mensaje.reply('No se puede activar el modo automático si hay usuarios escuchando');
         }
     }
 
