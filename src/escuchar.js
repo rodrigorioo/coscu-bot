@@ -128,7 +128,7 @@ class Escuchar {
     verificarChanelEscucha(mensaje) {
 
         if(this.chanelDeEscucha === null) {
-            return false;
+            return true;
         }
 
         const voiceChannel = mensaje.member.voice.channel;
