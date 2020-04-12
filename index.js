@@ -41,7 +41,8 @@ async function leerComando(comando, args, mensaje) {
                 let msg = "c!<frase>: dice alguna frase de coscu (Ej: c!buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
                     "c!manual: El bot solo va a funcionar por comando\n" +
                     "c!automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
-                    "c!escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n";
+                    "c!escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n" +
+                    "c!sonidos: Muestra los sonidos disponibles para reproducir";
                 mensaje.reply(msg);
                 break;
             case 'automatico':
@@ -50,6 +51,22 @@ async function leerComando(comando, args, mensaje) {
             case 'manual':
                 app.automatico.modoAutomatico(false, args, mensaje);
                 break;
+
+            case 'sonidos':
+
+                let audios = [];
+
+                await fs.readdir('./audios/', async (err, archivos) => {
+
+                    archivos.forEach(archivo => {
+                        audios.push(archivo.replace('.mp3', ''));
+                    });
+
+                    mensaje.reply("Todos los sonidos que hay para reproducir son: " + audios.join(' - '));
+                });
+
+                break;
+
             // case 'escuchar': app.escuchar.agregarEscucha(mensaje); break;
 
             default:
