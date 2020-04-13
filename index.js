@@ -33,6 +33,18 @@ client.on('message', async mensaje => {
     }
 });
 
+client.on("ready", async () => {
+    console.log("Coscu BOT by RodrigoRio");
+    console.log("Node Version: " + process.version);
+    console.log("Discord.js Version: " + Discord.version);
+
+    await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
+});
+
+client.on("guildCreate", async () => {
+    await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
+});
+
 async function leerComando(comando, args, mensaje) {
 
     if(mensaje.member.id !== client.user.id) {
