@@ -17,12 +17,12 @@ class Sonido {
 
         this._colaSonidos.push(sonido);
 
-        this.reproducirSonido();
+        this.reproducirSonido(mensaje);
 
         mensaje.reply('Sonidito agregado a la lista');
     }
 
-    async reproducirSonido() {
+    async reproducirSonido(mensaje) {
 
         // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
         if(!this._sonando) {
@@ -35,29 +35,36 @@ class Sonido {
 
                 if (voiceChannel) {
 
-                    const conexion = await voiceChannel.join();
+                    voiceChannel.join()
+                        .then((conexion) => {
+                            const dispatcher = conexion.play('./audios/' + sonido.comando + '.mp3');
 
-                    const dispatcher = conexion.play('./audios/' + sonido.comando + '.mp3');
+                            if(dispatcher) {
+                                this._sonando = true;
 
-                    this._sonando = true;
+                                dispatcher.on('finish', () => {
 
-                    dispatcher.on('finish', () => {
+                                    this._sonando = false;
+                                    dispatcher.destroy();
 
-                        this._sonando = false;
-                        dispatcher.destroy();
+                                    if(this.colaSonidos.length > 0) {
+                                        this.reproducirSonido();
+                                    } else {
 
-                        if(this.colaSonidos.length > 0) {
-                            this.reproducirSonido();
-                        } else {
-
-                            // SI NO HAY USUARIOS ESCUCHANDO
-                            if(data.usuariosEscuchando.size === 0) {
-                                sonido.mensaje.member.voice.channel.leave();
+                                        // SI NO HAY USUARIOS ESCUCHANDO
+                                        if(data.usuariosEscuchando.size === 0) {
+                                            sonido.mensaje.member.voice.channel.leave();
+                                        }
+                                    }
+                                });
                             }
-                        }
-                    });
+                        })
+                        .catch((error) => {
+                            mensaje.reply("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
+                        });
+
                 } else {
-                    mensaje.reply('Bbto metete a un chanel para escucharme');
+
                 }
             }
         }

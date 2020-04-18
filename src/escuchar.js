@@ -186,11 +186,17 @@ class Escuchar {
                         if(this.verificarChanelEscucha(mensaje)) {
                             mensaje.reply('Ahora el bot te está escuchando rey!');
 
-                            this.conexionChanelDeEscucha = await voiceChannel.join();
+                            voiceChannel.join()
+                                .then((conexion) => {
 
-                            let intervalo = setInterval(this.escucharVoz.bind(this), 10000, mensaje);
+                                    this.conexionChanelDeEscucha = conexion;
+                                    let intervalo = setInterval(this.escucharVoz.bind(this), 10000, mensaje);
 
-                            data.usuariosEscuchando.set(mensaje.author.id, intervalo);
+                                    data.usuariosEscuchando.set(mensaje.author.id, intervalo);
+                                })
+                                .catch((error) => {
+                                    mensaje.reply("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
+                                });
                         }
 
                     }

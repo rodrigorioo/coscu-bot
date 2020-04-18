@@ -22,17 +22,24 @@ class Automatico {
 
                 let canal = canales.shift();
 
-                const conexion = await canal.join();
-                const audio = audios[Math.floor(Math.random() * audios.length)];
-                const dispatcher = conexion.play('./audios/' + audio);
+                voiceChannel.join()
+                    .then((conexion) => {
+                        const audio = audios[Math.floor(Math.random() * audios.length)];
+                        const dispatcher = conexion.play('./audios/' + audio);
 
-                dispatcher.on('finish', (...args) => {
+                        if(dispatcher) {
+                            dispatcher.on('finish', (...args) => {
 
-                    dispatcher.destroy();
-                    canal.leave();
+                                dispatcher.destroy();
+                                canal.leave();
 
-                    this.reproducirModoAutomatico(canales, audios);
-                });
+                                this.reproducirModoAutomatico(canales, audios);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        mensaje.reply("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
+                    });
 
             }, 1000);
         } else {
