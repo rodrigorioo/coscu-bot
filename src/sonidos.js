@@ -48,7 +48,7 @@ class Sonido {
                                     dispatcher.destroy();
 
                                     if(this.colaSonidos.length > 0) {
-                                        this.reproducirSonido();
+                                        this.reproducirSonido(mensaje);
                                     } else {
 
                                         // SI NO HAY USUARIOS ESCUCHANDO
