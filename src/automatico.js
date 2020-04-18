@@ -11,7 +11,7 @@ class Automatico {
 
     /** MÉTODOS */
 
-    reproducirModoAutomatico(canales, audios) {
+    reproducirModoAutomatico(canales, audios, mensaje) {
 
         // CUANDO SE TERMINA LA RECURSIÓN AL REPRODUCIR
         // SE SETEA SONANDO A FALSE PARA QUE PUEDA VOLVER A AGREGARSE A LA LISTA
@@ -22,7 +22,7 @@ class Automatico {
 
                 let canal = canales.shift();
 
-                voiceChannel.join()
+                canal.join()
                     .then((conexion) => {
                         const audio = audios[Math.floor(Math.random() * audios.length)];
                         const dispatcher = conexion.play('./audios/' + audio);
@@ -33,7 +33,7 @@ class Automatico {
                                 dispatcher.destroy();
                                 canal.leave();
 
-                                this.reproducirModoAutomatico(canales, audios);
+                                this.reproducirModoAutomatico(canales, audios, mensaje);
                             });
                         }
                     })
@@ -71,7 +71,7 @@ class Automatico {
                 });
 
                 if(canales.length > 0) {
-                    this.reproducirModoAutomatico(canales, audios);
+                    this.reproducirModoAutomatico(canales, audios, mensaje);
                 } else {
                     this.modoAutomatico(false, [], mensaje);
                     mensaje.channel.send('Se desactivó el modo automático debido a que no hay ningún sv donde entrar');
