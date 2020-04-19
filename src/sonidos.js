@@ -60,7 +60,6 @@ class Sonido {
                             }
                         })
                         .catch( (err) => {
-                            console.log(err);
                             throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb")
                         });
 
