@@ -3,7 +3,7 @@ const data = require('./data');
 class Sonido {
 
     constructor() {
-        this._colaSonidos = [];
+        this.colaSonidos = new Map();
     }
 
     /** METODOS */
@@ -15,7 +15,13 @@ class Sonido {
             mensaje: mensaje,
         };
 
-        this._colaSonidos.push(sonido);
+        let cola = this.colaSonidos.get(mensaje.guild.id);
+        if(!cola || cola.length === 0) {
+            this.colaSonidos.set(mensaje.guild.id, [sonido]);
+        } else {
+            cola.push(sonido);
+            this.colaSonidos.set(mensaje.guild.id, cola);
+        }
 
         try {
             this.reproducirSonido(mensaje);
@@ -32,7 +38,9 @@ class Sonido {
         const sonando = data.sonando.get(mensaje.guild.id);
         if(!sonando) {
 
-            const sonido = this._colaSonidos.shift();
+            let cola = this.colaSonidos.get(mensaje.guild.id);
+            const sonido = cola.shift();
+            this.colaSonidos.set(mensaje.guild.id, cola);
 
             if(sonido !== undefined) {
 
@@ -52,13 +60,19 @@ class Sonido {
                                     data.sonando.delete(mensaje.guild.id);
                                     dispatcher.destroy();
 
-                                    if(this.colaSonidos.length > 0) {
+                                    let cola = this.colaSonidos.get(mensaje.guild.id);
+                                    if(cola.length > 0) {
                                         this.reproducirSonido(mensaje);
                                     } else {
 
+                                        this.colaSonidos.delete(mensaje.guild.id);
+
                                         // SI NO HAY USUARIOS ESCUCHANDO
                                         if(data.usuariosEscuchando.size === 0) {
-                                            sonido.mensaje.member.voice.channel.leave();
+
+                                            if(sonido.mensaje.member.voice.channel) {
+                                                sonido.mensaje.member.voice.channel.leave();
+                                            }
                                         }
                                     }
                                 });
@@ -76,18 +90,6 @@ class Sonido {
     }
 
     /** END MÉTODOS */
-
-    /** GETTERS & SETTERS */
-
-    get colaSonidos() {
-        return this._colaSonidos;
-    }
-
-    // set colaSonidos(value) {
-    //     this._colaSonidos = value;
-    // }
-
-    /** END GETTERS & SETTERS */
 }
 
 const sonido = new Sonido();
