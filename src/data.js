@@ -1,6 +1,6 @@
 /** VARIABLES GLOBALES DEL BOT */
-let sonando = false;
-let automatico = false;
+let sonando = new Map();
+let automatico = new Map();
 let usuariosEscuchando = new Map();
 
 exports.sonando = sonando;

@@ -43,7 +43,7 @@ class Automatico {
 
             }, 1000);
         } else {
-            data.sonando = false;
+            data.sonando.delete(mensaje.guild.id);
             this.timerModoAutomaticoFuncionando.delete(mensaje.guild.id);
         }
 
@@ -62,7 +62,7 @@ class Automatico {
 
             fs.readdir('./audios', (err, audios) => {
 
-                data.sonando = true;
+                data.sonando.set(mensaje.guild.id, true);
 
                 // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
                 canalesCache.map( (canal, iCanal) => {
@@ -90,7 +90,8 @@ class Automatico {
 
         if (modo) {
 
-            if(data.automatico) throw new Error('El modo automático ya está activado');
+            const automatico = data.automatico.get(mensaje.guild.id);
+            if(automatico) throw new Error('El modo automático ya está activado');
 
             let tiempo = 1800000; // MEDIA HORA EN MS
 
@@ -103,7 +104,7 @@ class Automatico {
 
             }
 
-            data.automatico = true;
+            data.automatico.set(mensaje.guild.id, true);
 
             this.timerModoAutomatico.set(mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
 
@@ -111,9 +112,10 @@ class Automatico {
 
         } else {
 
-            if (!data.automatico) throw new Error('El modo manual ya está desactivado');
+            const automatico = data.automatico.get(mensaje.guild.id);
+            if (!automatico) throw new Error('El modo manual ya está desactivado');
 
-            data.automatico = false;
+            data.automatico.delete(mensaje.guild.id);
             clearInterval(this.timerModoAutomatico.get(mensaje.guild.id));
 
             mensaje.reply('El modo automático fue desactivado');

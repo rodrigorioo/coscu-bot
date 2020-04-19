@@ -29,7 +29,8 @@ class Sonido {
     reproducirSonido(mensaje) {
 
         // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
-        if(!this._sonando) {
+        const sonando = data.sonando.get(mensaje.guild.id);
+        if(!sonando) {
 
             const sonido = this._colaSonidos.shift();
 
@@ -44,11 +45,11 @@ class Sonido {
                             const dispatcher = conexion.play('./audios/' + sonido.comando + '.mp3');
 
                             if(dispatcher) {
-                                this._sonando = true;
+                                data.sonando.set(mensaje.guild.id, true);
 
                                 dispatcher.on('finish', () => {
 
-                                    this._sonando = false;
+                                    data.sonando.delete(mensaje.guild.id);
                                     dispatcher.destroy();
 
                                     if(this.colaSonidos.length > 0) {
