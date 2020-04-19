@@ -5,45 +5,49 @@ const client = new Discord.Client();
 
 const app = require('./src');
 
-client.login(process.env['TOKEN']);
+try {
+    client.login(process.env['TOKEN']);
 
-client.on('message', async mensaje => {
+    client.on('message', async mensaje => {
 
-    if (mensaje.content.includes('c!')) {
+        if (mensaje.content.includes('c!')) {
 
-        let args = [];
-        let comando = mensaje.content.split('c!')[1];
+            let args = [];
+            let comando = mensaje.content.split('c!')[1];
 
-        // SI EL STRING TIENE ESPACIOS
-        if (/\s/.test(comando)) {
+            // SI EL STRING TIENE ESPACIOS
+            if (/\s/.test(comando)) {
 
-            args = comando.split(' '); // DIVIDIMOS EN ARRAYS POR ESPACIOS
-            comando = args.shift(); // SACAMOS EL PRIMER ITEM QUE SERÍA EL COMANDO, LO DEMÁS SON LOS ARGUMENTOS QUE LE SIGUEN
-        }
-
-        if (comando.length > 1) {
-
-            try {
-                await leerComando(comando, args, mensaje);
-            } catch (err) {
-                await mensaje.reply(err.message);
+                args = comando.split(' '); // DIVIDIMOS EN ARRAYS POR ESPACIOS
+                comando = args.shift(); // SACAMOS EL PRIMER ITEM QUE SERÍA EL COMANDO, LO DEMÁS SON LOS ARGUMENTOS QUE LE SIGUEN
             }
 
+            if (comando.length > 1) {
+
+                try {
+                    await leerComando(comando, args, mensaje);
+                } catch (err) {
+                    await mensaje.reply(err.message);
+                }
+
+            }
         }
-    }
-});
+    });
 
-client.on("ready", async () => {
-    console.log("Coscu BOT by RodrigoRio");
-    console.log("Node Version: " + process.version);
-    console.log("Discord.js Version: " + Discord.version);
+    client.on("ready", async () => {
+        console.log("Coscu BOT by RodrigoRio");
+        console.log("Node Version: " + process.version);
+        console.log("Discord.js Version: " + Discord.version);
 
-    await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
-});
+        await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
+    });
 
-client.on("guildCreate", async () => {
-    await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
-});
+    client.on("guildCreate", async () => {
+        await client.user.setActivity((client.guilds.cache.size).toString() + " servers !help", {type: "PLAYING"});
+    });
+} catch (err) {
+    console.error(err);
+}
 
 async function leerComando(comando, args, mensaje) {
 
