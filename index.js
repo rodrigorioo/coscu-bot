@@ -25,7 +25,7 @@ client.login(process.env['TOKEN']).then( () => {
                 leerComando(comando, args, mensaje).then( (res) => {
 
                 }).catch( (err) => {
-                    mensaje.reply(err);
+                    mensaje.reply(err.message);
                 });
 
             }
