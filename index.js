@@ -83,7 +83,6 @@ async function leerComando(comando, args, mensaje) {
 
             default:
 
-
                 const voiceChannel = mensaje.member.voice.channel;
 
                 if (!voiceChannel) throw new Error('Bbto metete a un chanel para escucharme');
@@ -92,9 +91,7 @@ async function leerComando(comando, args, mensaje) {
                 // SI ESTÁ EN MODO AUTOMÁTICO
                 if (app.data.automatico) throw new Error('El bot está en modo automático brEEEo, desactivalo con c!manual');
 
-                app.sonidos.agregarCola(comando, mensaje).catch( (err) => {
-                    throw new Error(err);
-                });
+                app.sonidos.agregarCola(comando, mensaje);
 
                 break;
         }
