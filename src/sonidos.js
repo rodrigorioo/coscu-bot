@@ -22,7 +22,7 @@ class Sonido {
         mensaje.reply('Sonidito agregado a la lista');
     }
 
-    async reproducirSonido(mensaje) {
+    reproducirSonido(mensaje) {
 
         // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
         if(!this._sonando) {
@@ -59,8 +59,9 @@ class Sonido {
                                 });
                             }
                         })
-                        .catch((error) => {
-                            throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
+                        .catch( (err) => {
+                            console.log(err);
+                            throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb")
                         });
 
                 } else {
@@ -78,9 +79,9 @@ class Sonido {
         return this._colaSonidos;
     }
 
-    set colaSonidos(value) {
-        this._colaSonidos = value;
-    }
+    // set colaSonidos(value) {
+    //     this._colaSonidos = value;
+    // }
 
     /** END GETTERS & SETTERS */
 }
