@@ -89,7 +89,8 @@ async function leerComando(comando, args, mensaje) {
                 if (!fs.existsSync('./audios/' + comando + '.mp3')) throw new Error('mMm ese comandovich no lo tengo');
 
                 // SI ESTÁ EN MODO AUTOMÁTICO
-                if (app.data.automatico) throw new Error('El bot está en modo automático brEEEo, desactivalo con c!manual');
+                const automatico = app.data.automatico.get(mensaje.guild.id);
+                if (automatico) throw new Error('El bot está en modo automático brEEEo, desactivalo con c!manual');
 
                 try {
                     app.sonidos.agregarCola(comando, mensaje);
