@@ -5,8 +5,8 @@ const data = require('./data');
 class Automatico {
 
     constructor() {
-        this._timerModoAutomatico = null;
-        this._timerModoAutomaticoFuncionando = false;
+        this.timerModoAutomatico = new Map();
+        this.timerModoAutomaticoFuncionando = new Map();
     }
 
     /** MÉTODOS */
@@ -44,7 +44,7 @@ class Automatico {
             }, 1000);
         } else {
             data.sonando = false;
-            this.timerModoAutomaticoFuncionando = false;
+            this.timerModoAutomaticoFuncionando.delete(mensaje.guild.id);
         }
 
     }
@@ -54,9 +54,11 @@ class Automatico {
         const canalesCache = mensaje.guild.channels.cache;
         let canales = [];
 
-        if(!this.timerModoAutomaticoFuncionando) {
+        const timerModoAutomaticoFuncionando = this.timerModoAutomaticoFuncionando.get(mensaje.guild.id);
 
-            this.timerModoAutomaticoFuncionando = true;
+        if(!timerModoAutomaticoFuncionando) {
+
+            this.timerModoAutomaticoFuncionando.set(mensaje.guild.id, true);
 
             fs.readdir('./audios', (err, audios) => {
 
@@ -103,7 +105,7 @@ class Automatico {
 
             data.automatico = true;
 
-            this.timerModoAutomatico = setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje);
+            this.timerModoAutomatico.set(mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
 
             mensaje.reply('El modo automático fue activado');
 
@@ -112,39 +114,13 @@ class Automatico {
             if (!data.automatico) throw new Error('El modo manual ya está desactivado');
 
             data.automatico = false;
-            clearInterval(this.timerModoAutomatico);
+            clearInterval(this.timerModoAutomatico.get(mensaje.guild.id));
 
             mensaje.reply('El modo automático fue desactivado');
         }
     }
 
     /** END MÉTODOS */
-
-    /** GETTERS & SETTERS */
-
-    get timerModoAutomaticoFuncionando() {
-        return this._timerModoAutomaticoFuncionando;
-    }
-
-    set timerModoAutomaticoFuncionando(value) {
-        this._timerModoAutomaticoFuncionando = value;
-    }
-    get timerModoAutomatico() {
-        return this._timerModoAutomatico;
-    }
-
-    set timerModoAutomatico(value) {
-        this._timerModoAutomatico = value;
-    }
-    get automatico() {
-        return this._automatico;
-    }
-
-    set automatico(value) {
-        this._automatico = value;
-    }
-
-    /** END GETTERS & SETTERS */
 }
 
 const automatico = new Automatico();
