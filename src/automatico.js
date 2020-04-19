@@ -38,7 +38,7 @@ class Automatico {
                         }
                     })
                     .catch((error) => {
-                        mensaje.reply("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
+                        throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
                     });
 
             }, 1000);
