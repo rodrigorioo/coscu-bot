@@ -17,7 +17,11 @@ class Sonido {
 
         this._colaSonidos.push(sonido);
 
-        this.reproducirSonido(mensaje);
+        try {
+            this.reproducirSonido(mensaje);
+        } catch(err) {
+            throw new Error(err);
+        }
 
         mensaje.reply('Sonidito agregado a la lista');
     }
