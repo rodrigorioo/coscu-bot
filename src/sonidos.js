@@ -10,26 +10,29 @@ class Sonido {
 
     agregarCola(comando, mensaje) {
 
-        const sonido = {
-            comando: comando,
-            mensaje: mensaje,
-        };
+        return new Promise( async (success, failure) => {
+            const sonido = {
+                comando: comando,
+                mensaje: mensaje,
+            };
 
-        let cola = this.colaSonidos.get(mensaje.guild.id);
-        if(!cola || cola.length === 0) {
-            this.colaSonidos.set(mensaje.guild.id, [sonido]);
-        } else {
-            cola.push(sonido);
-            this.colaSonidos.set(mensaje.guild.id, cola);
-        }
+            let cola = this.colaSonidos.get(mensaje.guild.id);
+            if(!cola || cola.length === 0) {
+                this.colaSonidos.set(mensaje.guild.id, [sonido]);
+            } else {
+                cola.push(sonido);
+                this.colaSonidos.set(mensaje.guild.id, cola);
+            }
 
-        try {
-            this.reproducirSonido(mensaje);
-        } catch(err) {
-            throw new Error(err);
-        }
+            try {
+                this.reproducirSonido(mensaje);
+            } catch (err) {
+                failure(err.message);
+            }
 
-        mensaje.reply('Sonidito agregado a la lista');
+            success('Sonidito agregado a la lista');
+        });
+
     }
 
     reproducirSonido(mensaje) {
@@ -79,7 +82,7 @@ class Sonido {
                             }
                         })
                         .catch( (err) => {
-                            throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb")
+                            failure("No pude reproducir el sonido rey, fijate los permisos del chanel bb")
                         });
 
                 } else {

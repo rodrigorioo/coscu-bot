@@ -86,40 +86,42 @@ class Automatico {
 
     modoAutomatico(modo, args, mensaje) {
 
-        if(data.usuariosEscuchando.size !== 0) throw new Error('No se puede activar el modo automático si hay usuarios escuchando');
+        return new Promise( async (success, failure) => {
+            if(data.usuariosEscuchando.size !== 0) failure('No se puede activar el modo automático si hay usuarios escuchando');
 
-        if (modo) {
+            if (modo) {
 
-            const automatico = data.automatico.get(mensaje.guild.id);
-            if(automatico) throw new Error('El modo automático ya está activado');
+                const automatico = data.automatico.get(mensaje.guild.id);
+                if(automatico) failure('El modo automático ya está activado');
 
-            let tiempo = 1800000; // MEDIA HORA EN MS
+                let tiempo = 1800000; // MEDIA HORA EN MS
 
-            // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
-            if (args[0] !== undefined) {
+                // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
+                if (args[0] !== undefined) {
 
-                if (!Number.isInteger(parseInt(args[0])) || parseInt(args[0]) < 1) throw new Error('El argumento del tiempo tiene que ser un número válido');
+                    if (!Number.isInteger(parseInt(args[0])) || parseInt(args[0]) < 1) failure('El argumento del tiempo tiene que ser un número válido');
 
-                tiempo = parseInt(args[0]) * 1000 * 60;
+                    tiempo = parseInt(args[0]) * 1000 * 60;
 
+                }
+
+                data.automatico.set(mensaje.guild.id, true);
+
+                this.timerModoAutomatico.set(mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
+
+                success('El modo automático fue activado');
+
+            } else {
+
+                const automatico = data.automatico.get(mensaje.guild.id);
+                if (!automatico) failure('El modo manual ya está desactivado');
+
+                data.automatico.delete(mensaje.guild.id);
+                clearInterval(this.timerModoAutomatico.get(mensaje.guild.id));
+
+                success('El modo automático fue desactivado');
             }
-
-            data.automatico.set(mensaje.guild.id, true);
-
-            this.timerModoAutomatico.set(mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
-
-            mensaje.reply('El modo automático fue activado');
-
-        } else {
-
-            const automatico = data.automatico.get(mensaje.guild.id);
-            if (!automatico) throw new Error('El modo manual ya está desactivado');
-
-            data.automatico.delete(mensaje.guild.id);
-            clearInterval(this.timerModoAutomatico.get(mensaje.guild.id));
-
-            mensaje.reply('El modo automático fue desactivado');
-        }
+        });
     }
 
     /** END MÉTODOS */
