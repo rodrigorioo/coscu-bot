@@ -43,8 +43,8 @@ class Automatico {
 
             }, 1000);
         } else {
-            data.sonando.delete(mensaje.guild.id);
-            this.timerModoAutomaticoFuncionando.delete(mensaje.guild.id);
+            data.sonando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
+            this.timerModoAutomaticoFuncionando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
         }
 
     }
@@ -54,15 +54,15 @@ class Automatico {
         const canalesCache = mensaje.guild.channels.cache;
         let canales = [];
 
-        const timerModoAutomaticoFuncionando = this.timerModoAutomaticoFuncionando.get(mensaje.guild.id);
+        const timerModoAutomaticoFuncionando = this.timerModoAutomaticoFuncionando.get(mensaje.guild.shardID + '-' + mensaje.guild.id);
 
         if(!timerModoAutomaticoFuncionando) {
 
-            this.timerModoAutomaticoFuncionando.set(mensaje.guild.id, true);
+            this.timerModoAutomaticoFuncionando.set(mensaje.guild.shardID + '-' + mensaje.guild.id, true);
 
             fs.readdir('./audios', (err, audios) => {
 
-                data.sonando.set(mensaje.guild.id, true);
+                data.sonando.set(mensaje.guild.shardID + '-' + mensaje.guild.id, true);
 
                 // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
                 canalesCache.map( (canal, iCanal) => {
@@ -87,37 +87,37 @@ class Automatico {
     modoAutomatico(modo, args, mensaje) {
 
         return new Promise( async (success, failure) => {
-            if(data.usuariosEscuchando.size !== 0) failure('No se puede activar el modo automático si hay usuarios escuchando');
+            if(data.usuariosEscuchando.size !== 0) return failure('No se puede activar el modo automático si hay usuarios escuchando');
 
             if (modo) {
 
-                const automatico = data.automatico.get(mensaje.guild.id);
-                if(automatico) failure('El modo automático ya está activado');
+                const automatico = data.automatico.get(mensaje.guild.shardID + '-' + mensaje.guild.id);
+                if(automatico) return failure('El modo automático ya está activado');
 
                 let tiempo = 1800000; // MEDIA HORA EN MS
 
                 // EL PRIMER ARGUMENTO ES CADA CUANTO TIEMPO SE VA A EJECUTAR
                 if (args[0] !== undefined) {
 
-                    if (!Number.isInteger(parseInt(args[0])) || parseInt(args[0]) < 1) failure('El argumento del tiempo tiene que ser un número válido');
+                    if (!Number.isInteger(parseInt(args[0])) || parseInt(args[0]) < 1) return failure('El argumento del tiempo tiene que ser un número válido');
 
                     tiempo = parseInt(args[0]) * 1000 * 60;
 
                 }
 
-                data.automatico.set(mensaje.guild.id, true);
+                data.automatico.set(mensaje.guild.shardID + '-' + mensaje.guild.id, true);
 
-                this.timerModoAutomatico.set(mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
+                this.timerModoAutomatico.set(mensaje.guild.shardID + '-' + mensaje.guild.id, setInterval(this.ejecutarModoAutomatico.bind(this), tiempo, mensaje));
 
                 success('El modo automático fue activado');
 
             } else {
 
-                const automatico = data.automatico.get(mensaje.guild.id);
-                if (!automatico) failure('El modo manual ya está desactivado');
+                const automatico = data.automatico.get(mensaje.guild.shardID + '-' + mensaje.guild.id);
+                if (!automatico) return failure('El modo manual ya está desactivado');
 
-                data.automatico.delete(mensaje.guild.id);
-                clearInterval(this.timerModoAutomatico.get(mensaje.guild.id));
+                data.automatico.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
+                clearInterval(this.timerModoAutomatico.get(mensaje.guild.shardID + '-' + mensaje.guild.id));
 
                 success('El modo automático fue desactivado');
             }
