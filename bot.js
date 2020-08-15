@@ -53,12 +53,26 @@ client.login(process.env['TOKEN']).then( () => {
         console.log("Node Version: " + process.version);
         console.log("Discord.js Version: " + Discord.version);
 
-        await client.user.setActivity((client.guilds.cache.size).toString() + " servers "+ prefix + "help", {type: "PLAYING"});
+        client.shard.fetchClientValues('guilds.cache.size').then(results => {
+            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"help", {type: "PLAYING"});
+            // console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total guilds`);
+            }).catch(console.error);
+
+        // await client.user.setActivity((client.guilds.cache.size).toString() + " servers "+ prefix +"help", {type: "PLAYING"});
     });
 
     client.on("guildCreate", async () => {
-        await client.user.setActivity((client.guilds.cache.size).toString() + " servers "+ prefix +"help", {type: "PLAYING"});
+
+        client.shard.fetchClientValues('guilds.cache.size').then(results => {
+            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"help", {type: "PLAYING"});
+                // console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total guilds`);
+            }).catch(console.error);
+
+        // await client.user.setActivity((client.guilds.cache.size).toString() + " servers "+ prefix +"help", {type: "PLAYING"});
+
     });
+
+
 }).catch(console.error);
 
 async function leerComando(comando, args, mensaje) {
@@ -68,7 +82,8 @@ async function leerComando(comando, args, mensaje) {
         if(mensaje.member.id !== client.user.id) {
             switch (comando) {
                 case 'help':
-                    let msg = prefix +"<frase>: dice alguna frase de coscu (Ej: "+ prefix +"buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
+                    let msg = "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059\n" +
+                        prefix +"<frase>: dice alguna frase de coscu (Ej: "+ prefix +"buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
                         prefix + "manual: El bot solo va a funcionar por comando\n" +
                         prefix + "automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
                         prefix + "escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n" +
