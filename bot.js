@@ -58,6 +58,14 @@ client.login(process.env['TOKEN']).then( () => {
             // console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total guilds`);
             }).catch(console.error);
 
+        const canalesCache = client.channels.cache;
+        canalesCache.map( (canal, iCanal) => {
+
+            if(canal.type === 'text') {
+                client.channels.cache.get(canal.id).send('Hola bbtos, ya estoy ON OTRA VEZ NASHEEE!');
+            }
+        });
+
         // await client.user.setActivity((client.guilds.cache.size).toString() + " servers "+ prefix +"help", {type: "PLAYING"});
     });
 
