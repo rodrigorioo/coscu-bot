@@ -82,6 +82,8 @@ class Sonido {
                             }
                         })
                         .catch( (err) => {
+                            console.log(err);
+
                             return failure("No pude reproducir el sonido rey, fijate los permisos del chanel bb")
                         });
 

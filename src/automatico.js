@@ -43,7 +43,7 @@ class Automatico {
 
             }, 1000);
         } else {
-            data.sonando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
+            // data.sonando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
             this.timerModoAutomaticoFuncionando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
         }
 
@@ -62,7 +62,7 @@ class Automatico {
 
             fs.readdir('./audios', (err, audios) => {
 
-                data.sonando.set(mensaje.guild.shardID + '-' + mensaje.guild.id, true);
+                // data.sonando.set(mensaje.guild.shardID + '-' + mensaje.guild.id, true);
 
                 // LIMPIAMOS LOS CANALES QUE NO SON DE VOICE
                 canalesCache.map( (canal, iCanal) => {
@@ -117,6 +117,7 @@ class Automatico {
                 if (!automatico) return failure('El modo manual ya está desactivado');
 
                 data.automatico.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
+                this.timerModoAutomaticoFuncionando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
                 clearInterval(this.timerModoAutomatico.get(mensaje.guild.shardID + '-' + mensaje.guild.id));
 
                 success('El modo automático fue desactivado');
