@@ -21,16 +21,22 @@ const prefix = 'c!';
 //
 // client.login(process.env['TOKEN']);
 
-client.login(process.env['TOKEN']).then( () => {
+client.login('TOKEN').then( () => {
+    
     client.on('message', mensaje => {
+        /*Va a entrar a la funcion solo si el mensaje es "c!help"
+        O si el cliente manda un mensaje embebido (esta afuera del primer if por esto)*/  
+            help(mensaje);
 
-        if (mensaje.content.includes(prefix)) {
+        if (mensaje.content.includes(prefix) && mensaje.author.id != client.user.id) {
 
             let args = [];
             let comando = mensaje.content.split(prefix)[1];
 
             // SI EL STRING TIENE ESPACIOS
-            if (/\s/.test(comando)) {
+            //El && es porque en la funcion help necesita un mensaje que mando el mismo bot, 
+            //Si se modifica no entra en el else if que reacciona los mensajes
+            if (/\s/.test(comando) && mensaje.author.id != client.user.id) { 
 
                 args = comando.split(' '); // DIVIDIMOS EN ARRAYS POR ESPACIOS
                 comando = args.shift(); // SACAMOS EL PRIMER ITEM QUE SERÍA EL COMANDO, LO DEMÁS SON LOS ARGUMENTOS QUE LE SIGUEN
@@ -87,19 +93,14 @@ async function leerComando(comando, args, mensaje) {
 
     return new Promise( async (success, failure) => {
 
-        if(mensaje.member.id !== client.user.id) {
+        if(true) {
             switch (comando) {
+
                 case 'help':
-                    let msg = "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059\n" +
-                        prefix +"<frase>: dice alguna frase de coscu (Ej: "+ prefix +"buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
-                        prefix + "manual: El bot solo va a funcionar por comando\n" +
-                        prefix + "automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
-                        prefix + "escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n" +
-                        prefix + "sonidos: Muestra los sonidos disponibles para reproducir";
-
-                    success(msg);
-
+                    //Sin esto entra al default y responde dos veces
+                    //Aunque esta solucion es muy lenta.
                     break;
+                
                 case 'automatico':
                     app.automatico.modoAutomatico(true, args, mensaje).then( (suc) => {
                         success(suc);
@@ -113,21 +114,6 @@ async function leerComando(comando, args, mensaje) {
                     }).catch( (err) => {
                         failure(err);
                     });
-                    break;
-
-                case 'sonidos':
-
-                    let audios = [];
-
-                    await fs.readdir('./audios/', (err, archivos) => {
-
-                        archivos.forEach(archivo => {
-                            audios.push(archivo.replace('.mp3', ''));
-                        });
-
-                        success("Todos los sonidos que hay para reproducir son: " + audios.join(' - '));
-                    });
-
                     break;
 
                 case 'test':
@@ -157,3 +143,231 @@ async function leerComando(comando, args, mensaje) {
         }
     });
 }
+
+
+//Por samurairepublicano, samurai#1995 en discord
+async function help(message) {
+
+    let audios = [];
+    await fs.readdir('./audios/', (err, archivos) => {
+    archivos.forEach(archivo => {
+        audios.push(archivo.replace('.mp3', ''));
+    });
+    if(message.content === 'c!help' && message.author.id != client.user.id) {    
+        //Manda ek mensaje de help
+        var embed = new Discord.MessageEmbed()
+
+        embed = embed
+            .setTitle('AYUDA DE COSCU-BOT')
+            .setColor('#FF3D1E')
+            .addField('c!<frase>', '(Ej: c!buenardo) (SÓLO FUNCIONA EN MODO MANUAL)')
+            .addField('c!manual', 'El bot solo va a funcionar por comando')
+            .addField('c!automatico <tiempo_en_segundos>', 'El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar')
+            .addField('c!escuchar', 'El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad)')
+            .setFooter('Si reaccionas con las flechas cambias de pagina, con el cuadrado eliminas este mensaje')
+            //En el footer tambien queda bien poner el autor
+            .setAuthor(`Pagina 1`);
+        message.channel.send(embed);
+        
+        return;
+    } else if(message.embeds.length === 1 && message.author.id === client.user.id) { 
+        //Entra a esta condicion solo cuando el cliente manda un mensaje embebido
+        //Hay que arreglar si se quiere mandar otro mensaje embebido distinto de la pagina de help
+        var page = 0;
+        message.react('◀');
+        message.react('⏹');
+        message.react('▶');
+
+        const filter = (reaction) => reaction.emoji.name === '⏹' || reaction.emoji.name === '◀' || reaction.emoji.name === '▶';
+        const collector = message.createReactionCollector(filter);
+        collector.on('collect', r => { 
+            if(r.count === 2 && r.emoji.name === '⏹') message.delete();
+            
+            if(r.count === 2 && r.emoji.name === '▶') {
+                //Aca se podria poner manualmente un maximo de paginas para que en las ultimas no muestre undefined
+                page = page + 1;
+                emb(page, audios, message);
+                return;
+            }
+
+            if(r.count === 2 && r.emoji.name === '◀') {
+                if(page > 0) page = page - 1;
+                else return;
+                emb(page, audios, message)
+                return;
+            }
+
+            return;
+        });
+      } 
+    else return;
+    });
+}
+
+
+function emb(page, audios, message) {
+    //Ver MeesageEmbed en la documentacion de discordjs
+    var embed = new Discord.MessageEmbed();
+    /*
+    Unico inconveniente de esta forma es que hay que aniadir mas pags
+    cada vez que se aniaden muchos sonidos, no se me ocurre una forma de 
+    automatizarlo
+    Hacer el codigo mas compacto seria un golazo
+    */ 
+    switch(page) {
+        case 0:
+            embed = 
+            embed
+            .setTitle('AYUDA DE COSCU-BOT')
+            .setColor('#FF3D1E')
+            .addField('c!<frase>', '(Ej: c!buenardo) (SÓLO FUNCIONA EN MODO MANUAL)')
+            .addField('c!manual', 'El bot solo va a funcionar por comando')
+            .addField('c!automatico <tiempo_en_segundos>', 'El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar')
+            .addField('c!escuchar', 'El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad)')
+            .setFooter('Si reaccionas con las flechas cambias de pagina, con el cuadrado eliminas este mensaje')
+            //En el footer tambien queda bien poner el autor
+
+            .setAuthor(`Pagina 1`);
+            message.edit(embed);
+            break;
+        
+        case 1:
+            //Los guiones son porque no se puede pasar un valor vacio en el segundo parametro de las fields
+            //Otra opcion para los guiones podria ser poner el sonido siguiente pero habria unos en negrita y otros no
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page+1}`);
+            for(var i=0; i<6; i++) {
+                //Esta parte la copie de la ayuda original
+                embed = embed
+                .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+        
+        case 2:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page+1}`);
+            for(var i=6; i<12; i++) {
+                embed = embed
+                .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 3:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 12; i < 18; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 4:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 18; i < 24; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 5:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 24; i < 30; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 6:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 30; i < 36; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 7:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 36; i < 42; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 8:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 42; i < 48; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+
+        case 9:
+            embed =
+                embed
+                    .setTitle('AYUDA DE COSCU-BOT')
+                    .setColor('#FF3D1E')
+                    .setDescription('Sonidos:')
+                    .setFooter('Bot hecho por jaxor#5059\nPagina de ayuda hecha por samurai#1995')
+                    .setAuthor(`Pagina ${page + 1}`);
+            for (var i = 48; i < 54; i++) {
+                embed = embed
+                    .addField(audios[i], '_')
+            }
+            message.edit(embed);
+            break;
+    }
+    
+}    
