@@ -32,10 +32,12 @@ class Automatico {
 
                                 dispatcher.destroy();
                                 canal.leave();
-
-                                this.reproducirModoAutomatico(canales, audios, mensaje);
                             });
                         }
+
+                        conexion.on('disconnect', () => {
+                            this.reproducirModoAutomatico(canales, audios, mensaje);
+                        });
                     })
                     .catch((error) => {
                         throw new Error("No pude reproducir el sonido rey, fijate los permisos del chanel bb");
