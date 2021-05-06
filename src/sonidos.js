@@ -39,6 +39,7 @@ class Sonido {
 
         // SI NO ESTÁ REPRODUCIENDO NINGÚN SONIDO
         const sonando = data.sonando.get(mensaje.guild.shardID + '-' + mensaje.guild.id);
+
         if(!sonando) {
 
             let cola = this.colaSonidos.get(mensaje.guild.shardID + '-' + mensaje.guild.id);
@@ -80,6 +81,10 @@ class Sonido {
                                     }
                                 });
                             }
+
+                            conexion.on('disconnect', () => {
+                                data.sonando.delete(mensaje.guild.shardID + '-' + mensaje.guild.id);
+                            });
                         })
                         .catch( (err) => {
                             console.log(err);
