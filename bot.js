@@ -93,7 +93,7 @@ async function leerComando(comando, args, mensaje) {
                     let msg = "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059\n" +
                         prefix +"<frase>: dice alguna frase de coscu (Ej: "+ prefix +"buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
                         prefix + "manual: El bot solo va a funcionar por comando\n" +
-                        prefix + "automatico <tiempo_en_segundos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
+                        prefix + "automatico <tiempo_en_minutos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
                         prefix + "escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n" +
                         prefix + "sonidos: Muestra los sonidos disponibles para reproducir";
 
