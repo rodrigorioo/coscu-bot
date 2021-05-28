@@ -54,7 +54,7 @@ client.login(process.env['TOKEN']).then( () => {
         console.log("Discord.js Version: " + Discord.version);
 
         client.shard.fetchClientValues('guilds.cache.size').then(results => {
-            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"help", {type: "PLAYING"});
+            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"ayuda", {type: "PLAYING"});
             // console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total guilds`);
             }).catch(console.error);
 
@@ -89,14 +89,38 @@ async function leerComando(comando, args, mensaje) {
 
         if(mensaje.member.id !== client.user.id) {
             switch (comando) {
-                case 'help':
-                    let msg = "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059\n" +
-                        prefix +"<frase>: dice alguna frase de coscu (Ej: "+ prefix +"buenardo) (SÓLO FUNCIONA EN MODO MANUAL)\n" +
-                        prefix + "manual: El bot solo va a funcionar por comando\n" +
-                        prefix + "automatico <tiempo_en_minutos>: El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar\n" +
-                        prefix + "escuchar: El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad) \n" +
-                        prefix + "sonidos: Muestra los sonidos disponibles para reproducir";
-
+                case 'help' && 'ayuda':
+                    let msg = {embed: {
+                            color: 3447003,
+                            title: "CoscuBOT",
+                            description: "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059",
+                            fields: [{
+                                name:`${prefix}sonidos`,
+                                value:"Muestra los sonidos disponibles para reproducir." 
+                            },
+                            {
+                                name:`${prefix}<frase>`,
+                                value:"Dice alguna frase de coscu (Ej: c!buenardo) (SÓLO FUNCIONA EN MODO MANUAL)"
+                            },
+                            {
+                                name:`${prefix}manual`,
+                                value:"El bot solo va a funcionar por comando."
+                            },
+                            {
+                                name:`${prefix}automatico <tiempo_en_minutos>`,
+                                value:"El bot va a ingresar a todos los channels cada X tiempo a reproducir un sonido al azar."
+                            },
+                            {
+                                name:`${prefix}escuchar`,
+                                value:"El bot va a escucharte cada 10 segundos, 3 segundos. Si decís una frase de Coscu (Ej: buenardo, clave) el bot va a reproducir la frase sólo (Deshabilitado momentaneamente por cuestiones de escalabilidad)"
+                            }
+                            ],
+                            footer: {
+                                text:`Este bot está en: ${client.guilds.cache.size} servidores.`
+                            }
+                        }
+                    }
+                    
                     success(msg);
 
                     break;
