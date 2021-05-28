@@ -72,7 +72,7 @@ client.login(process.env['TOKEN']).then( () => {
     client.on("guildCreate", async () => {
 
         client.shard.fetchClientValues('guilds.cache.size').then(results => {
-            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"help", {type: "PLAYING"});
+            client.user.setActivity(results.reduce((acc, guildCount) => acc + guildCount, 0) + " servers "+ prefix +"ayuda", {type: "PLAYING"});
                 // console.log(`${results.reduce((acc, guildCount) => acc + guildCount, 0)} total guilds`);
             }).catch(console.error);
 
@@ -96,7 +96,7 @@ async function leerComando(comando, args, mensaje) {
                             description: "Si queres colaborar con el mantenimiento del bot, podés agregarme a Discord: jaxorr#5059",
                             fields: [{
                                 name:`${prefix}sonidos`,
-                                value:"Muestra los sonidos disponibles para reproducir." 
+                                value:"Muestra los sonidos disponibles para reproducir."
                             },
                             {
                                 name:`${prefix}<frase>`,
@@ -120,7 +120,7 @@ async function leerComando(comando, args, mensaje) {
                             }
                         }
                     }
-                    
+
                     success(msg);
 
                     break;
