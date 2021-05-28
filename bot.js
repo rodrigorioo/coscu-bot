@@ -89,7 +89,7 @@ async function leerComando(comando, args, mensaje) {
 
         if(mensaje.member.id !== client.user.id) {
             switch (comando) {
-                case 'help' && 'ayuda':
+                case 'ayuda':
                     let msg = {embed: {
                             color: 3447003,
                             title: "CoscuBOT",
